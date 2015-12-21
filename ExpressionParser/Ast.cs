@@ -145,26 +145,5 @@ namespace DXAppProto2
 		{
 			bool IsMeasurementUnitValid(string measurementUnit);
 		}
-
-		public class MesaurementUnitValidator : IMeasurementUnitValidator
-		{
-			private HashSet<string> validUnits = new HashSet<string>()
-			{
-				"m",
-				"cm",
-				"mm",
-				"km",
-				"nm",
-				"um",
-				"pm",
-				"fm"
-			};
-
-			public bool IsMeasurementUnitValid(string measurementUnit)
-			{
-				return validUnits.Contains(measurementUnit);
-			}
-		}
-
 	}
 }
