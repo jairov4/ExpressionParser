@@ -1,0 +1,353 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+
+COMPILER C
+
+private void ValidateMeasurementUnit()
+{	
+	if(!Validator.IsMeasurementUnitValid(t.val))
+	{
+		this.SemErr("Invalid measurement unit " + t.val);
+	}	
+}
+
+private FilterExpressionBinaryOperator ResolveOperator(string oper)
+{
+	switch(oper)
+	{
+		case "And": return FilterExpressionBinaryOperator.And;
+		case "Xor": return FilterExpressionBinaryOperator.Xor;
+		case "+": return FilterExpressionBinaryOperator.Add;
+		case "-": return FilterExpressionBinaryOperator.Subtract;
+		case "*": return FilterExpressionBinaryOperator.Multiply;
+		case "/": return FilterExpressionBinaryOperator.Divide;
+		case "%": return FilterExpressionBinaryOperator.Remainder;
+		case "=": return FilterExpressionBinaryOperator.Equals;
+		case "<>": return FilterExpressionBinaryOperator.NotEquals;
+		case "<": return FilterExpressionBinaryOperator.LessThan;
+		case ">": return FilterExpressionBinaryOperator.GreatThan;
+		case ">=": return FilterExpressionBinaryOperator.GreatThanOrEquals;
+		case "<=": return FilterExpressionBinaryOperator.LessThanOrEquals;		
+	}
+
+	throw new NotSupportedException();
+}
+
+private string Unescape(string txt)
+{
+    if (string.IsNullOrEmpty(txt)) { return txt; }
+    StringBuilder retval = new StringBuilder(txt.Length);
+    for (int ix = 0; ix < txt.Length; )
+    {
+        int jx = txt.IndexOf('\\', ix);
+        if (jx < 0 || jx == txt.Length - 1) jx = txt.Length;
+        retval.Append(txt, ix, jx - ix);
+        if (jx >= txt.Length) break;
+        switch (txt[jx + 1])
+        {
+            case 'n': retval.Append('\n'); break;  // Line feed
+            case 'r': retval.Append('\r'); break;  // Carriage return
+            case 't': retval.Append('\t'); break;  // Tab
+            case '\\': retval.Append('\\'); break; // Don't escape
+            default:                                 // Unrecognized, copy as-is
+                retval.Append('\\').Append(txt[jx + 1]); break;
+        }
+        ix = jx + 2;
+    }
+    return retval.ToString();
+}
+
+private string MakeString(string v)
+{
+	var unquoted = v.Substring(1, v.Length-2);
+	var unescaped = Unescape(unquoted);
+	return unescaped;
+}
+
+private void MakeReal(string v, out object val, out Type type)
+{
+	if (v.EndsWith("d", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = double.Parse(v.Substring(0, v.Length-1));
+		type= typeof(double);
+	}
+	else if (v.EndsWith("f", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = float.Parse(v.Substring(0, v.Length-1));
+		type= typeof(float);
+	}
+	else if (v.EndsWith("m", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = decimal.Parse(v.Substring(0, v.Length - 1));
+		type = typeof (decimal);
+	}
+	else
+	{
+		val = double.Parse(v);
+		type= typeof(double);	
+	}
+}
+
+private void MakeInteger(string v, out object val, out Type type)
+{
+	if (v.EndsWith("u", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = uint.Parse(v.Substring(0, v.Length-1));
+		type= typeof(uint);
+	}
+	else if(v.EndsWith("ul", StringComparison.InvariantCultureIgnoreCase)
+		|| v.EndsWith("lu", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = ulong.Parse(v.Substring(0, v.Length-2));
+		type= typeof(ulong);
+	}
+	else if (v.EndsWith("l", StringComparison.InvariantCultureIgnoreCase))
+	{
+		val = long.Parse(v.Substring(0, v.Length-1));
+		type= typeof(long);
+	}
+	else
+	{
+		val = int.Parse(v);
+		type= typeof(int);	
+	}
+}
+
+private Type MakeNullable(Type t)
+{
+	var nullable = typeof (Nullable<>);
+	var nullableConcrete = nullable.MakeGenericType(t);
+	return nullableConcrete;
+}
+
+CHARACTERS
+
+	tab                = '\u0009'. /*  9 = tabulator */
+	lf                = '\u000a'. /* 10 = line feed */
+	cr                 = '\u000d'. /* 13 = carriage return */
+	newLine            = cr + lf. /* Line separator character (U+2028) + Paragraph separator character (U+2029) */
+
+	letter             = 'A' .. 'Z' + 'a' .. 'z' + '_'.
+	digit              = "0123456789".
+	hexDigit           = digit + "ABCDEFabcdef".
+	notDigit           = ANY - digit.
+
+	char               = ANY - "'" - '\\' - newLine.
+	verbatimStringChar = ANY - '"'.
+	regularStringChar  = ANY - '"' - '\\' - newLine.
+	notNewLine         = ANY - newLine .
+	ws                 = " " + tab + '\u000b' + '\u000c'. /* Any character with Unicode class Zs */
+
+
+TOKENS
+
+	ident = letter { letter | digit }.
+  /*--------------------------------------------------------------------------------*/
+	intCon =
+		( digit {digit} | digit {digit} CONTEXT ("." notDigit)
+		| ("0x" | "0X") hexDigit {hexDigit}
+		)
+		["U" | "u" | "L" | "l" | "UL" | "Ul" | "uL" | "ul" | "LU" | "Lu" | "lU" | "lu"].
+  /*--------------------------------------------------------------------------------*/
+	realCon =
+		"." digit {digit} 
+		[("e" | "E") ["+" | "-"] digit {digit}] 
+		["F" | "f" | "D" | "d" | "M" | "m"]
+	| digit {digit} 
+		( "." digit {digit} 
+			[("e" | "E" ) ["+" | "-"] digit {digit} ] 
+			["F" | "f" | "D" | "d" | "M" | "m"]
+		| ("e" | "E") ["+" | "-"] digit {digit}
+			["F" | "f" | "D" | "d" | "M" | "m"]
+		| "F" | "f" | "D" | "d" | "M" | "m"
+		).
+  /*--------------------------------------------------------------------------------*/
+	charCon =
+		"'" (	char
+				| "\\\'" | "\\\"" | "\\\\" | "\\0" | "\\a" | "\\b" | "\\f" | "\\n" | "\\r" | "\\t" | "\\v"
+				| "\\x" hexDigit [hexDigit] [hexDigit] [hexDigit]
+				| "\\u" hexDigit hexDigit hexDigit hexDigit
+				| "\\U" hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit
+				) 
+		"'".
+  /*--------------------------------------------------------------------------------*/
+	stringCon =
+		"\""	{ regularStringChar
+					| "\\\'" | "\\\"" | "\\\\" | "\\0" | "\\a" | "\\b" | "\\f" | "\\n" | "\\r" | "\\t" | "\\v"
+					| "\\x" hexDigit [hexDigit] [hexDigit] [hexDigit]
+					| "\\u" hexDigit hexDigit hexDigit hexDigit
+					| "\\U" hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit hexDigit
+					} 
+		"\""
+	| "@\"" {verbatimStringChar | "\"\""} "\"".
+
+COMMENTS FROM "/*" TO "*/"
+COMMENTS FROM "//" TO lf
+
+IGNORE tab + cr + lf
+
+PRODUCTIONS
+
+/*----------------------------- Expressions ------------------------------*/
+
+C (. FilterExpressionNode n; .)
+= Expression<out n> (. Root = n; .)
+.
+
+Expression<out FilterExpressionNode node>
+= ExpressionOr<out node>
+.
+
+ExpressionOr<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; .)
+= ExpressionAnd<out n> 
+{ "Or" ExpressionAnd<out m> 
+(. n = new FilterExpressionBinaryNode(FilterExpressionBinaryOperator.Or, n, m); .) }
+(. node = n; .)
+.
+
+ExpressionAnd<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; string o; .)
+= ExpressionSum<out n> 
+{ ("And" | "Xor") (. o = t.val; .) ExpressionSum<out m>
+(. n = new FilterExpressionBinaryNode(ResolveOperator(o), n, m); .) }
+(. node = n; .)
+.
+
+ExpressionSum<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; string o; .)
+= ExpressionMult<out n>
+{ ("+" | "-") (. o = t.val; .) ExpressionMult<out m>
+(. n = new FilterExpressionBinaryNode(ResolveOperator(o), n, m); .) }
+(. node = n; .)
+.
+
+ExpressionMult<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; string o; .)
+= ExpressionEqu<out n>
+{ ("*" | "/" | "%" ) (. o = t.val; .) ExpressionEqu<out m>
+(. n = new FilterExpressionBinaryNode(ResolveOperator(o), n, m); .) }
+(. node = n; .)
+.
+
+ExpressionEqu<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; string o; .)
+= ExpressionRel<out n>
+{ ("=" | "<>") (. o = t.val; .) ExpressionRel<out m>
+(. n = new FilterExpressionBinaryNode(ResolveOperator(o), n, m); .) }
+(. node = n; .)
+.
+
+ExpressionRel<out FilterExpressionNode node>
+(. FilterExpressionNode n, m; string o; .)
+= ExpressionUnary<out n>
+{ ("<" | ">" | "<=" | ">=") (. o = t.val; .) ExpressionUnary<out m>
+(. n = new FilterExpressionBinaryNode(ResolveOperator(o), n, m); .) }
+(. node = n; .)
+.
+
+ExpressionUnary<out FilterExpressionNode node>
+(. FilterExpressionNode n; FilterExpressionUnaryOperator? oper = null; .)
+=
+[ "-" (. oper = FilterExpressionUnaryOperator.Complement; .) 
+| "Not" (. oper = FilterExpressionUnaryOperator.Not; .) ] 
+ExpressionTerminal<out n> 
+(. node = oper.HasValue ? new FilterExpressionUnaryNode(oper.Value, n) : n; .)
+.
+
+ExpressionTerminal<out FilterExpressionNode node>
+(. node = null; .)
+= Literal<out node>
+| FieldReferenceOrMethodCall<out node>
+| "(" 
+	( Cast<out node>
+	| Expression<out node> ")" 
+	)
+.
+
+FieldReferenceOrMethodCall<out FilterExpressionNode node>
+(. string qname;
+FilterExpressionNode n;
+List<FilterExpressionNode> args = null; .)
+= QualifiedName<out qname> 
+[ 
+ (. args = new List<FilterExpressionNode>(); .)
+ "(" [ Expression<out n> (. args.Add(n); .) { "," Expression<out n> (. args.Add(n); .) } ] ")" 
+]
+(. if(args != null) node = new FilterExpressionMethodCallNode(qname, args);
+else node = new FilterExpressionFieldReferenceNode(qname); .)
+.
+
+QualifiedName<out string parts> 
+(. var p = new StringBuilder(); .)
+= ident (. p.Append(t.val); .) 
+{ "." ident (. p.Append("."); p.Append(t.val); .) } 
+(. parts = p.ToString(); .)
+.
+
+Cast<out FilterExpressionNode node>
+(. Type type; FilterExpressionNode n; .)
+= Type<out type> ")" ExpressionTerminal<out n> (. node = new FilterExpressionCastNode(type, n); .)
+.
+
+Literal<out FilterExpressionNode node> 
+(. string mu = string.Empty; node = null; .) 
+= intCon 
+(. object v; Type ty; MakeInteger(t.val, out v, out ty); .) 
+[MeasurementUnit<out mu>] 
+(. node = new FilterExpressionLiteralNode(ty, v, mu); .)
+
+| realCon 
+(. object v; Type ty; MakeReal(t.val, out v, out ty); .) 
+[MeasurementUnit<out mu>] 
+(. node = new FilterExpressionLiteralNode(ty, v, mu); .)
+
+| charCon 
+(. var charConVal = char.Parse(t.val); .) 
+(. node = new FilterExpressionLiteralNode(typeof(char), charConVal, mu); .)
+
+| stringCon 
+(. var v = MakeString(t.val); .) 
+(. node = new FilterExpressionLiteralNode(typeof(string), v, mu); .)
+
+| "true" 
+(. node = new FilterExpressionLiteralNode(typeof(bool), true, mu); .)
+
+| "false" 
+(. node = new FilterExpressionLiteralNode(typeof(bool), false, mu); .)
+
+| "null" 
+(. node = new FilterExpressionLiteralNode(null, null, mu); .)
+.
+
+MeasurementUnit<out string mu>
+= ident (. mu = t.val; ValidateMeasurementUnit(); .)
+.
+
+Type<out Type type>
+(. Type t = null; type = null; .)
+= 
+("bool" (. t = typeof(bool); .) 
+| "byte" (. t = typeof(byte); .)
+| "char" (. t = typeof(char); .)
+| "decimal" (. t = typeof(decimal); .)
+| "double" (. t = typeof(double); .)
+| "float" (. t = typeof(float); .)
+| "int" (. t = typeof(int); .)
+| "long" (. t = typeof(long); .)
+| "sbyte" (. t = typeof(sbyte); .)
+| "short" (. t = typeof(short); .)
+| "uint" (. t = typeof(uint); .)
+| "ulong" (. t = typeof(ulong); .)
+| "ushort" (. t = typeof(ushort); .)
+| "DateTime" (. t = typeof(DateTime); .)
+| "DateTimeOffset" (. t = typeof(DateTimeOffset); .)
+| "TimeSpan" (. t = typeof(TimeSpan); .)
+) [ "?" (. t = MakeNullable(t); .) ] (. type = t; .)
+| "string" (. type = typeof(string); .)
+| "object" (. type = typeof(object); .)
+.
+
+END C.
