@@ -21,4 +21,5 @@ namespace DXAppProto2.FilterExpressions
 			return validUnits.Contains(measurementUnit);
 		}
 	}
+
 }

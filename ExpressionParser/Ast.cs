@@ -21,8 +21,10 @@ namespace DXAppProto2
 		public abstract class FilterExpressionNode
 		{
 			public abstract FilterExpressionNodeType NodeType { get; }
-		}
 
+            public abstract void Accept(IFilterExpressionVisitor visitor);
+		}
+        
 		public sealed class FilterExpressionFieldReferenceNode : FilterExpressionNode
 		{
 			public override FilterExpressionNodeType NodeType => FilterExpressionNodeType.FieldReference;
@@ -31,9 +33,14 @@ namespace DXAppProto2
 
 			public FilterExpressionFieldReferenceNode(string fieldName)
 			{
-				FieldName = fieldName;
+				this.FieldName = fieldName;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
 
 		public sealed class FilterExpressionLiteralNode : FilterExpressionNode
 		{
@@ -47,11 +54,16 @@ namespace DXAppProto2
 
 			public FilterExpressionLiteralNode(Type type, object value, string measurementUnit)
 			{
-				LiteralType = type;
-				Value = value;
-				MeasurementUnit = measurementUnit;
+				this.LiteralType = type;
+				this.Value = value;
+				this.MeasurementUnit = measurementUnit;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+            }
+        }
 
 		public sealed class FilterExpressionCastNode : FilterExpressionNode
 		{
@@ -63,10 +75,16 @@ namespace DXAppProto2
 
 			public FilterExpressionCastNode(Type targetType, FilterExpressionNode expression)
 			{
-				TargetType = targetType;
-				Expression = expression;
+				this.TargetType = targetType;
+				this.Expression = expression;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+                this.Expression.Accept(visitor);
+            }
+        }
 
 		public sealed class FilterExpressionMethodCallNode : FilterExpressionNode
 		{
@@ -78,10 +96,19 @@ namespace DXAppProto2
 
 			public FilterExpressionMethodCallNode(string methodName, IReadOnlyList<FilterExpressionNode> arguments)
 			{
-				MethodName = methodName;
-				Arguments = arguments;
+				this.MethodName = methodName;
+				this.Arguments = arguments;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+                foreach (var item in this.Arguments)
+                {
+                    item.Accept(visitor);
+                }
+            }
+        }
 
 		public enum FilterExpressionBinaryOperator
 		{
@@ -114,11 +141,18 @@ namespace DXAppProto2
 			public FilterExpressionBinaryNode(FilterExpressionBinaryOperator oper, FilterExpressionNode a1,
 				FilterExpressionNode a2)
 			{
-				Operator = oper;
-				LeftOperand = a1;
-				RightOperand = a2;
+				this.Operator = oper;
+				this.LeftOperand = a1;
+				this.RightOperand = a2;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+                LeftOperand.Accept(visitor);
+                RightOperand.Accept(visitor);
+            }
+        }
 
 		public enum FilterExpressionUnaryOperator
 		{
@@ -136,14 +170,35 @@ namespace DXAppProto2
 
 			public FilterExpressionUnaryNode(FilterExpressionUnaryOperator oper, FilterExpressionNode operand)
 			{
-				Operator = oper;
-				Operand = operand;
+				this.Operator = oper;
+				this.Operand = operand;
 			}
-		}
+
+            public override void Accept(IFilterExpressionVisitor visitor)
+            {
+                visitor.Visit(this);
+                this.Operand.Accept(visitor);
+            }
+        }
 
 		public interface IMeasurementUnitValidator
 		{
 			bool IsMeasurementUnitValid(string measurementUnit);
 		}
+
+        public interface IFilterExpressionVisitor
+        {
+            void Visit(FilterExpressionBinaryNode node);
+
+            void Visit(FilterExpressionUnaryNode node);
+
+            void Visit(FilterExpressionCastNode node);
+
+            void Visit(FilterExpressionFieldReferenceNode node);
+
+            void Visit(FilterExpressionLiteralNode node);
+
+            void Visit(FilterExpressionMethodCallNode node);
+        }
 	}
 }
