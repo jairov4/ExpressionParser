@@ -18,6 +18,11 @@ namespace DXAppProto2
 			Unary
 		}
 
+		public enum FilterExpressionVisitorAction
+		{
+			Enter, Exit
+		}
+
 		public abstract class FilterExpressionNode
 		{
 			public abstract FilterExpressionNodeType NodeType { get; }
@@ -38,8 +43,9 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
-            }
+                visitor.Visit(this, FilterExpressionVisitorAction.Enter);
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public sealed class FilterExpressionLiteralNode : FilterExpressionNode
@@ -61,8 +67,9 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
-            }
+                visitor.Visit(this, FilterExpressionVisitorAction.Enter);
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public sealed class FilterExpressionCastNode : FilterExpressionNode
@@ -81,9 +88,10 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
-                this.Expression.Accept(visitor);
-            }
+				visitor.Visit(this, FilterExpressionVisitorAction.Enter);
+				this.Expression.Accept(visitor);
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public sealed class FilterExpressionMethodCallNode : FilterExpressionNode
@@ -102,12 +110,13 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
-                foreach (var item in this.Arguments)
+				visitor.Visit(this, FilterExpressionVisitorAction.Enter);
+				foreach (var item in this.Arguments)
                 {
                     item.Accept(visitor);
                 }
-            }
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public enum FilterExpressionBinaryOperator
@@ -148,10 +157,11 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
-                LeftOperand.Accept(visitor);
+				visitor.Visit(this, FilterExpressionVisitorAction.Enter);
+				LeftOperand.Accept(visitor);
                 RightOperand.Accept(visitor);
-            }
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public enum FilterExpressionUnaryOperator
@@ -176,9 +186,10 @@ namespace DXAppProto2
 
             public override void Accept(IFilterExpressionVisitor visitor)
             {
-                visitor.Visit(this);
+				visitor.Visit(this, FilterExpressionVisitorAction.Enter);
                 this.Operand.Accept(visitor);
-            }
+				visitor.Visit(this, FilterExpressionVisitorAction.Exit);
+			}
         }
 
 		public interface IMeasurementUnitValidator
@@ -188,17 +199,17 @@ namespace DXAppProto2
 
         public interface IFilterExpressionVisitor
         {
-            void Visit(FilterExpressionBinaryNode node);
+            void Visit(FilterExpressionBinaryNode node, FilterExpressionVisitorAction action);
 
-            void Visit(FilterExpressionUnaryNode node);
+            void Visit(FilterExpressionUnaryNode node, FilterExpressionVisitorAction action);
 
-            void Visit(FilterExpressionCastNode node);
+            void Visit(FilterExpressionCastNode node, FilterExpressionVisitorAction action);
 
-            void Visit(FilterExpressionFieldReferenceNode node);
+            void Visit(FilterExpressionFieldReferenceNode node, FilterExpressionVisitorAction action);
 
-            void Visit(FilterExpressionLiteralNode node);
+            void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action);
 
-            void Visit(FilterExpressionMethodCallNode node);
+            void Visit(FilterExpressionMethodCallNode node, FilterExpressionVisitorAction action);
         }
 	}
 }

@@ -1,54 +1,74 @@
-﻿using DXAppProto2.FilterExpressions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
-    public class MeasurementUnitResolver
-    {
-        public MeasurementUnitResolver()
-        {
-        }
+	using System;
+	using FilterExpressions;
 
-        public IMeasurementUnit GetMeasurementUnit(IMeasurementUnitRepository repo)
-        {
+	public interface IMeasurementUnit
+	{
+		string Abbreviation { get; }
+	}
 
-        }
+	public interface IMeasurementUnitRepository
+	{
+		IMeasurementUnit ResolveAbbreviation(string abbrev);
+	}
 
-        struct FilterExpressionVisitor : IFilterExpressionVisitor
-        {
-            public void Visit(FilterExpressionCastNode node)
-            {
-                throw new NotImplementedException();
-            }
+	public class MeasurementUnitResolver
+	{
+		private readonly IMeasurementUnitRepository repo;
 
-            public void Visit(FilterExpressionLiteralNode node)
-            {
-                throw new NotImplementedException();
-            }
+		public MeasurementUnitResolver(IMeasurementUnitRepository repo)
+		{
+			this.repo = repo;
+		}
 
-            public void Visit(FilterExpressionMethodCallNode node)
-            {
-                throw new NotImplementedException();
-            }
+		public IMeasurementUnit GetMeasurementUnit(FilterExpressionNode expr)
+		{
+			var visitor = new FilterExpressionVisitor(repo);
+			expr.Accept(visitor);
+			return visitor.Result;
+		}
 
-            public void Visit(FilterExpressionFieldReferenceNode node)
-            {
-                throw new NotImplementedException();
-            }
+		private class FilterExpressionVisitor : IFilterExpressionVisitor
+		{
+			private IMeasurementUnitRepository Repository { get; }
 
-            public void Visit(FilterExpressionUnaryNode node)
-            {
-                throw new NotImplementedException();
-            }
+			public IMeasurementUnit Result { get; private set; }
 
-            public void Visit(FilterExpressionBinaryNode node)
-            {
-                throw new NotImplementedException();
-            }
-        }
-    }
+			public FilterExpressionVisitor(IMeasurementUnitRepository repo)
+			{
+				this.Repository = repo;
+			}
+			
+			public void Visit(FilterExpressionCastNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Visit(FilterExpressionMethodCallNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Visit(FilterExpressionFieldReferenceNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Visit(FilterExpressionUnaryNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+
+			public void Visit(FilterExpressionBinaryNode node, FilterExpressionVisitorAction action)
+			{
+				throw new NotImplementedException();
+			}
+		}
+	}
 }
