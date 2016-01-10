@@ -29,7 +29,7 @@ namespace DXAppProto2
 
             public abstract void Accept(IFilterExpressionVisitor visitor);
 		}
-        
+
 		public sealed class FilterExpressionFieldReferenceNode : FilterExpressionNode
 		{
 			public override FilterExpressionNodeType NodeType => FilterExpressionNodeType.FieldReference;

@@ -30,17 +30,8 @@ public class Parser
 	private Token la;   // lookahead token
 	private int errDist = minErrDist;
 
-	public IMeasurementUnitValidator Validator { get; }
 	public FilterExpressionNode Root { get; private set; }
 	
-private void ValidateMeasurementUnit()
-{	
-	if(!Validator.IsMeasurementUnitValid(t.val))
-	{
-		this.SemErr("Invalid measurement unit " + t.val);
-	}	
-}
-
 private FilterExpressionBinaryOperator ResolveOperator(string oper)
 {
 	switch(oper)
@@ -152,10 +143,9 @@ private Type MakeNullable(Type t)
 
 
 
-	public Parser(Scanner scanner, IMeasurementUnitValidator validator) 
+	public Parser(Scanner scanner) 
 	{
 		this.scanner = scanner;
-		this.Validator = validator;
 		errors = new Errors();
 	}
 
@@ -551,7 +541,7 @@ private Type MakeNullable(Type t)
 
 	void MeasurementUnit(out string mu) {
 		Expect(1);
-		mu = t.val; ValidateMeasurementUnit(); 
+		mu = t.val; 
 	}
 
 

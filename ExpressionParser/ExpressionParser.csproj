@@ -48,7 +48,7 @@
     <Compile Include="Scanner.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="expr-parser.txt" />
+    <None Include="expr-parser.atg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Parser.frame" />

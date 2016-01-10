@@ -15,15 +15,13 @@ public class Parser
 	private Token la;   // lookahead token
 	private int errDist = minErrDist;
 
-	public IMeasurementUnitValidator Validator { get; }
 	public FilterExpressionNode Root { get; private set; }
 	
 -->declarations
 
-	public Parser(Scanner scanner, IMeasurementUnitValidator validator) 
+	public Parser(Scanner scanner) 
 	{
 		this.scanner = scanner;
-		this.Validator = validator;
 		errors = new Errors();
 	}
 

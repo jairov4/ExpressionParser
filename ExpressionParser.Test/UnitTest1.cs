@@ -78,8 +78,7 @@ namespace ExpressionParser.Test
 			var buffer = Encoding.Default.GetBytes(expression);
 			var stream = new MemoryStream(buffer);
 			var scanner = new Scanner(stream);
-			var validator = new MesaurementUnitValidator();
-			var parser = new Parser(scanner, validator);
+			var parser = new Parser(scanner);
 			parser.Parse();
 			return parser;
 		}
