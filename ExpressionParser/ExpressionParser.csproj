@@ -41,7 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ast.cs" />
-    <Compile Include="MeasurementUnitResolver.cs" />
+    <Compile Include="FilterExpressionMeasurementUnitResolver.cs" />
+    <Compile Include="IMeasurementUnit.cs" />
+    <Compile Include="IMeasurementUnitRepository.cs" />
+    <Compile Include="IMeasurementUnitValidator.cs" />
     <Compile Include="MesaurementUnitValidator.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

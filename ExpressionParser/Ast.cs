@@ -192,11 +192,10 @@ namespace DXAppProto2
 			}
         }
 
-		public interface IMeasurementUnitValidator
-		{
-			bool IsMeasurementUnitValid(string measurementUnit);
-		}
-
+		/// <summary>
+		/// Allows to process a filter expression AST.
+		/// The visitor patter allows to process the AST without breaking of Liskov principle.
+		/// </summary>
         public interface IFilterExpressionVisitor
         {
             void Visit(FilterExpressionBinaryNode node, FilterExpressionVisitorAction action);

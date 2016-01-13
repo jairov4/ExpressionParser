@@ -4,21 +4,14 @@
     using FilterExpressions;
     using System.Collections.Generic;
 
-    public interface IMeasurementUnit
-	{
-		string Abbreviation { get; }
-	}
-
-	public interface IMeasurementUnitRepository
-	{
-		IMeasurementUnit ResolveAbbreviation(string abbrev);
-	}
-
-	public class MeasurementUnitResolver
+	/// <summary>
+	/// Resolves the measurement unit of the whole expression performing dimensional analysis
+	/// </summary>
+	public class FilterExpressionMeasurementUnitResolver
 	{
 		private readonly IMeasurementUnitRepository repo;
 
-		public MeasurementUnitResolver(IMeasurementUnitRepository repo)
+		public FilterExpressionMeasurementUnitResolver(IMeasurementUnitRepository repo)
 		{
 			this.repo = repo;
 		}
@@ -30,6 +23,9 @@
 			return visitor.Result;
 		}
 
+		/// <summary>
+		/// Internal visitor implementation
+		/// </summary>
 		private class FilterExpressionVisitor : IFilterExpressionVisitor
 		{
 			private IMeasurementUnitRepository Repository { get; }
