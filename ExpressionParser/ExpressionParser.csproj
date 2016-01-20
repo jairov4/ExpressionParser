@@ -42,10 +42,9 @@
   <ItemGroup>
     <Compile Include="Ast.cs" />
     <Compile Include="FilterExpressionMeasurementUnitResolver.cs" />
-    <Compile Include="IMeasurementUnit.cs" />
-    <Compile Include="IMeasurementUnitRepository.cs" />
-    <Compile Include="IMeasurementUnitValidator.cs" />
-    <Compile Include="MesaurementUnitValidator.cs" />
+    <Compile Include="IExpressionMethod.cs" />
+    <Compile Include="IFilterExpressionExecutionContext.cs" />
+    <Compile Include="MeasurementUnitAlgebraicFactor.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scanner.cs" />

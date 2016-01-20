@@ -1,4 +1,6 @@
-﻿namespace DXAppProto2
+﻿using System.Linq;
+
+namespace DXAppProto2
 {
     using System;
     using FilterExpressions;
@@ -9,18 +11,18 @@
 	/// </summary>
 	public class FilterExpressionMeasurementUnitResolver
 	{
-		private readonly IMeasurementUnitRepository repo;
+		private readonly IFilterExpressionExecutionContext repo;
 
-		public FilterExpressionMeasurementUnitResolver(IMeasurementUnitRepository repo)
+		public FilterExpressionMeasurementUnitResolver(IFilterExpressionExecutionContext repo)
 		{
 			this.repo = repo;
 		}
 
-		public IMeasurementUnit GetMeasurementUnit(FilterExpressionNode expr)
+		public IReadOnlyDictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> GetMeasurementUnit(FilterExpressionNode expr)
 		{
 			var visitor = new FilterExpressionVisitor(repo);
 			expr.Accept(visitor);
-			return visitor.Result;
+			return visitor.UnitsByNode;
 		}
 
 		/// <summary>
@@ -28,13 +30,16 @@
 		/// </summary>
 		private class FilterExpressionVisitor : IFilterExpressionVisitor
 		{
-			private IMeasurementUnitRepository Repository { get; }
+			private IFilterExpressionExecutionContext Repository { get; }
 
-			public IMeasurementUnit Result { get; private set; }
+			private Dictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> units;
 
-			public FilterExpressionVisitor(IMeasurementUnitRepository repo)
+			public IReadOnlyDictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> UnitsByNode => units;
+
+			public FilterExpressionVisitor(IFilterExpressionExecutionContext repo)
 			{
 				this.Repository = repo;
+				this.units = new Dictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor>();
 			}
 			
 			public void Visit(FilterExpressionCastNode node, FilterExpressionVisitorAction action)
@@ -45,26 +50,29 @@
             public void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action)
             {
                 if (action == FilterExpressionVisitorAction.Enter) return;
-                Result = Repository.ResolveAbbreviation(node.MeasurementUnit);
+                var u = MeasurementUnitAlgebraicFactor.FromSingleUnit(node.MeasurementUnit);
+				units.Add(node, u);
             }
 
 			public void Visit(FilterExpressionMethodCallNode node, FilterExpressionVisitorAction action)
 			{
                 if (action == FilterExpressionVisitorAction.Enter) return;
-                // Process due to method name and its arguments the resulting unit
-                Result = null;
+				var argumentUnits = node.Arguments.Select(x => UnitsByNode[x]).ToList();
+				var u = Repository.Methods[node.MethodName].ComputeResultingUnit(argumentUnits);
+                units.Add(node, u);
             }
 
 			public void Visit(FilterExpressionFieldReferenceNode node, FilterExpressionVisitorAction action)
 			{
                 if (action == FilterExpressionVisitorAction.Enter) return;
-                // Process due to field provider the measurement unit
-                Result = null;
-            }
+				var u = Repository.UnitsByField[node.FieldName];
+				units.Add(node, u);
+			}
 
 			public void Visit(FilterExpressionUnaryNode node, FilterExpressionVisitorAction action)
 			{
-                // Unary expressions do not affect measurement unit
+				if (action == FilterExpressionVisitorAction.Enter) return;
+                units.Add(node, units[node]);
             }
 
 			public void Visit(FilterExpressionBinaryNode node, FilterExpressionVisitorAction action)
@@ -78,10 +86,30 @@
                     case FilterExpressionBinaryOperator.Add:
                     case FilterExpressionBinaryOperator.Subtract:
                         // These operators do not affect unit measurement
+		                if (!Equals(units[node.LeftOperand], units[node.RightOperand]))
+		                {
+			                throw new InvalidOperationException();
+		                }
+
+						units.Add(node, units[node.LeftOperand]);
                         break;
 
                     case FilterExpressionBinaryOperator.Multiply:
+	                {
+		                var left = units[node.LeftOperand];
+		                var right = units[node.RightOperand];
+		                units.Add(node, left.Multiply(right));
+	                }
+		                break;
+
                     case FilterExpressionBinaryOperator.Divide:
+	                {
+		                var left = units[node.LeftOperand];
+		                var right = units[node.RightOperand];
+		                units.Add(node, left.Divide(right));
+	                }
+		                break;
+
                     case FilterExpressionBinaryOperator.Remainder:
                         // TODO: Algebraic handling of measurement unit
                         break;
@@ -93,7 +121,7 @@
                     case FilterExpressionBinaryOperator.LessThanOrEquals:
                     case FilterExpressionBinaryOperator.GreatThanOrEquals:
                         // Comparison produces boolean adimensional magnitudes
-                        Result = null;
+                        units.Add(node, MeasurementUnitAlgebraicFactor.Dimensionless);
                         break;
 
                     default:
