@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace DXAppProto2
 {
-	public interface IExpressionMethod
+	public interface IFilterExpressionMethod
 	{
 		MeasurementUnitAlgebraicFactor ComputeResultingUnit(IReadOnlyList<MeasurementUnitAlgebraicFactor> inputUnits);
 

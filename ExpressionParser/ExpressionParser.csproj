@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="Ast.cs" />
     <Compile Include="FilterExpressionMeasurementUnitResolver.cs" />
-    <Compile Include="IExpressionMethod.cs" />
+    <Compile Include="IFilterExpressionMethod.cs" />
     <Compile Include="IFilterExpressionExecutionContext.cs" />
     <Compile Include="MeasurementUnitAlgebraicFactor.cs" />
     <Compile Include="Parser.cs" />

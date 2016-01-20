@@ -7,7 +7,7 @@
 	/// </summary>
 	public interface IFilterExpressionExecutionContext
 	{
-		IReadOnlyDictionary<string, IExpressionMethod> Methods { get; }
+		IReadOnlyDictionary<string, IFilterExpressionMethod> Methods { get; }
 
 		IReadOnlyDictionary<string, MeasurementUnitAlgebraicFactor> UnitsByField { get; }
 	}
