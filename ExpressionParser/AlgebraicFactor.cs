@@ -15,6 +15,15 @@
 			Numerator = numerator.ToDictionary(x => x.Key, x => x.Value);
 			Denominator = denominator.ToDictionary(x => x.Key, x => x.Value);
 			IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
+			if (Numerator.Any(x => x.Value <= 0))
+			{
+				throw new ArgumentOutOfRangeException(nameof(numerator));
+			}
+
+			if (Denominator.Any(x => x.Value <= 0))
+			{
+				throw new ArgumentOutOfRangeException(nameof(denominator));
+			}
 		}
 
 		private AlgebraicFactor(Dictionary<string, int> numerator, Dictionary<string, int> denominator)
@@ -54,6 +63,11 @@
 		private bool DictionaryEquals(IReadOnlyDictionary<string, int> a, IReadOnlyDictionary<string, int> b)
 		{
 			return a.OrderBy(x => x.Key).SequenceEqual(b.OrderBy(x => x.Key));
+		}
+
+		private int GetDictionaryHashCode(IReadOnlyDictionary<string, int> d)
+		{
+			return d.Aggregate(397, (current, pair) => current ^ pair.GetHashCode());
 		}
 
 		public static AlgebraicFactor FromSingleUnit(string measurementUnit)
@@ -127,7 +141,12 @@
 			var n = new AlgebraicFactor(nn, nd);
 			return n;
 		}
-		
+
+		public AlgebraicFactor Inverse()
+		{
+			return new AlgebraicFactor(this.Denominator, this.Numerator);
+		}
+
 		public override bool Equals(object obj)
 		{
 			var obj2 = obj as AlgebraicFactor;
@@ -136,7 +155,7 @@
 
 		public override int GetHashCode()
 		{
-			return Numerator.GetHashCode()*397 ^ Denominator.GetHashCode();
+			return GetDictionaryHashCode(this.Numerator)*397 ^ GetDictionaryHashCode(this.Denominator);
 		}
 	}
 }
