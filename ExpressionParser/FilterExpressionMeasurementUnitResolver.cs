@@ -44,7 +44,9 @@ namespace DXAppProto2
 			
 			public void Visit(FilterExpressionCastNode node, FilterExpressionVisitorAction action)
 			{
-                // Cast do not affect units
+				// Cast do not affect units
+				if (action == FilterExpressionVisitorAction.Enter) return;
+				units.Add(node, units[node]);
 			}
 
             public void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action)
