@@ -111,10 +111,13 @@ namespace DXAppProto2
 		                break;
 
                     case FilterExpressionBinaryOperator.Remainder:
-                        // TODO: Algebraic handling of measurement unit
-                        break;
+	                {
+		                var left = units[node.LeftOperand];
+		                units.Add(node, left);
+	                }
+		                break;
 
-                    case FilterExpressionBinaryOperator.Equals:
+	                case FilterExpressionBinaryOperator.Equals:
                     case FilterExpressionBinaryOperator.NotEquals:
                     case FilterExpressionBinaryOperator.LessThan:
                     case FilterExpressionBinaryOperator.GreatThan:
