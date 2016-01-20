@@ -1,8 +1,7 @@
-﻿using System.Linq;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
     using System;
+	using System.Linq;
     using FilterExpressions;
     using System.Collections.Generic;
 
@@ -18,7 +17,7 @@ namespace DXAppProto2
 			this.repo = repo;
 		}
 
-		public IReadOnlyDictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> GetMeasurementUnit(FilterExpressionNode expr)
+		public IReadOnlyDictionary<FilterExpressionNode, AlgebraicFactor> GetMeasurementUnit(FilterExpressionNode expr)
 		{
 			var visitor = new FilterExpressionVisitor(repo);
 			expr.Accept(visitor);
@@ -32,14 +31,14 @@ namespace DXAppProto2
 		{
 			private IFilterExpressionExecutionContext Repository { get; }
 
-			private Dictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> units;
+			private Dictionary<FilterExpressionNode, AlgebraicFactor> units;
 
-			public IReadOnlyDictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor> UnitsByNode => units;
+			public IReadOnlyDictionary<FilterExpressionNode, AlgebraicFactor> UnitsByNode => units;
 
 			public FilterExpressionVisitor(IFilterExpressionExecutionContext repo)
 			{
 				this.Repository = repo;
-				this.units = new Dictionary<FilterExpressionNode, MeasurementUnitAlgebraicFactor>();
+				this.units = new Dictionary<FilterExpressionNode, AlgebraicFactor>();
 			}
 			
 			public void Visit(FilterExpressionCastNode node, FilterExpressionVisitorAction action)
@@ -52,7 +51,7 @@ namespace DXAppProto2
             public void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action)
             {
                 if (action == FilterExpressionVisitorAction.Enter) return;
-                var u = MeasurementUnitAlgebraicFactor.FromSingleUnit(node.MeasurementUnit);
+                var u = AlgebraicFactor.FromSingleUnit(node.MeasurementUnit);
 				units.Add(node, u);
             }
 
@@ -126,7 +125,7 @@ namespace DXAppProto2
                     case FilterExpressionBinaryOperator.LessThanOrEquals:
                     case FilterExpressionBinaryOperator.GreatThanOrEquals:
                         // Comparison produces boolean adimensional magnitudes
-                        units.Add(node, MeasurementUnitAlgebraicFactor.Dimensionless);
+                        units.Add(node, AlgebraicFactor.Dimensionless);
                         break;
 
                     default:

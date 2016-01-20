@@ -9,6 +9,6 @@
 	{
 		IReadOnlyDictionary<string, IFilterExpressionMethod> Methods { get; }
 
-		IReadOnlyDictionary<string, MeasurementUnitAlgebraicFactor> UnitsByField { get; }
+		IReadOnlyDictionary<string, AlgebraicFactor> UnitsByField { get; }
 	}
 }

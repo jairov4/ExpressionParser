@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-
 namespace DXAppProto2
 {
+	using System.Collections.Generic;
+
 	public interface IFilterExpressionMethod
 	{
-		MeasurementUnitAlgebraicFactor ComputeResultingUnit(IReadOnlyList<MeasurementUnitAlgebraicFactor> inputUnits);
+		AlgebraicFactor ComputeResultingUnit(IReadOnlyList<AlgebraicFactor> inputUnits);
 
-		object ComputeResultingValue(IReadOnlyList<object> inputValues, IReadOnlyList<MeasurementUnitAlgebraicFactor> inputUnits);
+		object ComputeResultingValue(IReadOnlyList<object> inputValues, IReadOnlyList<AlgebraicFactor> inputUnits);
 	}
 }
