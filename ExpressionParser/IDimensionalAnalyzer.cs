@@ -14,7 +14,7 @@ namespace DXAppProto2
 
 		IPhysicalDimension GetPhysicalDimensionForMeasurementUnit(string measurementUnit);
 		
-		AlgebraicFactor ToFundamentalDimensionalFactor(AlgebraicFactor unitsFactor);
+		AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor);
 
 		AlgebraicFactor ReplaceDimension(AlgebraicFactor dimensionalFactor, string dimension, string newDimension);
 

@@ -37,7 +37,7 @@ namespace DXAppProto2
 			if (composedPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
 			if (dimensionByUnit.ContainsKey(newUnit)) throw new ArgumentException(nameof(newUnit));
 
-			var dimensionalDefinition = this.ToFundamentalDimensionalFactor(referenceFactor);
+			var dimensionalDefinition = this.GetFundamentalDimensionalFactorFromUnitsFactor(referenceFactor);
 			var dimension =  new ComposedPhysicalDimension(dimensionName, dimensionalDefinition, referenceFactor, conversionParameters, newUnit);
 			composedPhysicalDimensions.Add(dimensionName, dimension);
 			dimensionByUnit.Add(newUnit, dimension);
@@ -86,9 +86,76 @@ namespace DXAppProto2
 			return dimensionByUnit[measurementUnit];
 		}
 		
-		public AlgebraicFactor ToFundamentalDimensionalFactor(AlgebraicFactor unitsFactor)
+		public AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor)
 		{
-			throw new System.NotImplementedException();
+			var result = AlgebraicFactor.Dimensionless;
+			foreach (var pair in unitsFactor.Numerator)
+			{
+				var dim = dimensionByUnit[pair.Key];
+				ComposedPhysicalDimension cdimension;
+				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+				{
+					result = result.Multiply(cdimension.DimensionalDefinition);
+				}
+				else
+				{
+					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+					result = result.Multiply(factor);
+				}
+			}
+
+			foreach (var pair in unitsFactor.Denominator)
+			{
+				var dim = dimensionByUnit[pair.Key];
+				ComposedPhysicalDimension cdimension;
+				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+				{
+					result = result.Divide(cdimension.DimensionalDefinition);
+				}
+				else
+				{
+					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+					result = result.Divide(factor);
+				}
+			}
+
+			return result;
+		}
+
+		public AlgebraicFactor GetFundamentalDimensionalFactorFromDimensionalFactor(AlgebraicFactor dimensionalFactor)
+		{
+			var result = AlgebraicFactor.Dimensionless;
+			foreach (var pair in dimensionalFactor.Numerator)
+			{
+				ComposedPhysicalDimension cdimension;
+				if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
+				{
+					result = result.Multiply(cdimension.DimensionalDefinition);
+				}
+				else
+				{
+					var dim = fundamentalPhysicalDimensions[pair.Key];
+					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+					result = result.Multiply(factor);
+				}
+			}
+
+			foreach (var pair in dimensionalFactor.Denominator)
+			{
+				ComposedPhysicalDimension cdimension;
+				if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
+				{
+					result = result.Divide(cdimension.DimensionalDefinition);
+				}
+				else
+				{
+					var dim = fundamentalPhysicalDimensions[pair.Key];
+					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+					result = result.Divide(factor);
+				}
+			}
+
+			return result;
 		}
 
 		public AlgebraicFactor ReplaceDimension(AlgebraicFactor dimensionalFactor, string dimension, string newDimension)
@@ -98,7 +165,9 @@ namespace DXAppProto2
 
 		public bool AreDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1, AlgebraicFactor dimensionalFactor2)
 		{
-			throw new System.NotImplementedException();
+			var factor1 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
+			var factor2 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
+			return factor1.Equals(factor2);
 		}
 
 		public double ConvertUnits(double quantity, AlgebraicFactor currentUnits, AlgebraicFactor targetUnits)
