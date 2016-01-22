@@ -7,10 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ExpressionParser.Test
 {
 	[TestClass]
-	public class UnitTest1
+	public class ParserSimpleTests
 	{
 		[TestMethod]
-		public void TestMethod1()
+		public void ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "a + b";
 			var parser = ParseString(expression);
@@ -21,7 +21,7 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void TestMethod2()
+		public void WithParentesis_ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "(a + b) * (c + d)";
 			var parser = ParseString(expression);
@@ -32,7 +32,7 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void TestMethod3()
+		public void WithMethod_ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "(a + b) * f(c + d, 12 + 23)";
 			var parser = ParseString(expression);
@@ -43,7 +43,7 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void TestMethod4()
+		public void WithUnis_ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "2 cm + 14 mm";
 			var parser = ParseString(expression);
@@ -54,7 +54,7 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void TestMethod5()
+		public void WithCast_ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "(double)(2 cm + 14 mm)";
 			var parser = ParseString(expression);
@@ -65,7 +65,7 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void TestMethod6()
+		public void WithBoolean_ParseSimpleExpression_ExpectAst()
 		{
 			var expression = "b = c Or d <> e And p Xor j And b > c And b < c And c >= b And b <= d";
 			var parser = ParseString(expression);
