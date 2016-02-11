@@ -18,7 +18,9 @@ namespace DXAppProto2
 
 		AlgebraicFactor ReplaceDimension(AlgebraicFactor dimensionalFactor, string dimension, string newDimension);
 
-		bool AreDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1, AlgebraicFactor dimensionalFactor2);
+		bool AreDimensionalFactorsDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1, AlgebraicFactor dimensionalFactor2);
+
+		bool AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor unitFactor1, AlgebraicFactor unitFactor2);
 
 		double ConvertUnits(double quantity, AlgebraicFactor currentUnits, AlgebraicFactor targetUnits);
 	}

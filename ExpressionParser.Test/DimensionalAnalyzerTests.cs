@@ -51,9 +51,8 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("force", "N");
 			dim.AddFundamentalDimension("area", "m2");
 
-			var newton = AlgebraicFactor.FromSingleUnit("N");
-			var msquared = AlgebraicFactor.FromSingleUnit("m2");
-			dim.AddComposedDimension("pressure", "psi", newton.Divide(msquared), new ConversionParameters(6894.76, 0));
+			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			Assert.AreEqual(2, dim.FundamentalPhysicalDimensions.Count);
 			Assert.AreEqual(1, dim.ComposedPhysicalDimensions.Count);
@@ -72,9 +71,8 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("force", "N");
 			dim.AddFundamentalDimension("area", "m2");
 
-			var newton = AlgebraicFactor.FromSingleUnit("N");
-			var msquared = AlgebraicFactor.FromSingleUnit("m2");
-			dim.AddComposedDimension("pressure", "psi", newton.Divide(msquared), new ConversionParameters(6894.76, 0));
+			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			dim.AddMultiplierMeasurementUnit("atm", "psi", new ConversionParameters(14.6959, 0));
 
@@ -83,6 +81,33 @@ namespace ExpressionParser.Test
 			Assert.AreEqual(2, dim.GetComposedPhysicalDimension("pressure").Multiples.Count);
 			Assert.AreEqual(2, dim.GetComposedPhysicalDimension("pressure").MeasurementUnits.Count);
 			Assert.AreEqual("pressure", dim.GetPhysicalDimensionForMeasurementUnit("atm").Name);
+		}
+
+		[TestMethod]
+		public void WithTwoMultiples_TestDimensionalEquivalence_ExpectedTrue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("force", "N");
+			dim.AddFundamentalDimension("area", "m2");
+
+			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
+
+			dim.AddMultiplierMeasurementUnit("atm", "psi", new ConversionParameters(14.6959, 0));
+			
+			Assert.IsTrue(dim.AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor.FromSingleUnit("atm"), psi));
+		}
+
+		[TestMethod]
+		public void WithSimpleMulplierUnitAndFoundamentalUnit_TestConvertUnits_ExpectedRightValue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("distance", "m");
+			dim.AddMultiplierMeasurementUnit("km", "m", new ConversionParameters(1000, 0));
+
+			var result = dim.ConvertUnits(1000, AlgebraicFactor.FromSingleUnit("m"), AlgebraicFactor.FromSingleUnit("km"));
+
+			Assert.AreEqual(1.0, result);
 		}
 	}
 }
