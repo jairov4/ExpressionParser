@@ -26,7 +26,7 @@
 			}
 		}
 
-		private AlgebraicFactor(Dictionary<string, int> numerator, Dictionary<string, int> denominator)
+		private AlgebraicFactor(ListDictionary<string, int> numerator, ListDictionary<string, int> denominator)
 		{
 			Numerator = numerator;
 			Denominator = denominator;
@@ -72,8 +72,8 @@
 
 		public static AlgebraicFactor FromSymbol(string symbol, int power = 1)
 		{
-			var num = new Dictionary<string, int> {{symbol, power}};
-			var den = new Dictionary<string, int>(0);
+			var num = new ListDictionary<string, int> {{symbol, power}};
+			var den = new ListDictionary<string, int>(0);
 			return new AlgebraicFactor(num, den);
 		}
 

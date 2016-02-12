@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace DXAppProto2
@@ -12,10 +13,14 @@ namespace DXAppProto2
 
 		public ListDictionary(IEnumerable<KeyValuePair<TKey, TValue>> initialContents, IEqualityComparer<TKey> keyComparer)
 		{
-			list = new List<KeyValuePair<TKey, TValue>>(initialContents);
+			this.list = new List<KeyValuePair<TKey, TValue>>(initialContents);
 			this.keyComparer = keyComparer;
-			Keys = new SubCollection<TKey>(keyComparer, () => this.Count, () => list.Select(x => x.Key).GetEnumerator());
-			Values = new SubCollection<TValue>(EqualityComparer<TValue>.Default, () => this.Count, () => list.Select(x => x.Value).GetEnumerator());
+			this.Keys = new SubCollection<TKey>(keyComparer, () => this.Count, () => list.Select(x => x.Key).GetEnumerator());
+			this.Values = new SubCollection<TValue>(EqualityComparer<TValue>.Default, () => this.Count, () => list.Select(x => x.Value).GetEnumerator());
+			if (this.list.Count > 20)
+			{
+				Trace.TraceWarning("ListDictionary instance with many items, consider use Dictionary instead");
+			}
 		}
 
 		public ListDictionary(IEnumerable<KeyValuePair<TKey, TValue>> initialContents)
@@ -29,10 +34,15 @@ namespace DXAppProto2
 
 		public ListDictionary(int capacity, IEqualityComparer<TKey> keyComparer)
 		{
-			list = new List<KeyValuePair<TKey, TValue>>(capacity);
+			if (capacity > 20)
+			{
+				Trace.TraceWarning("ListDictionary instance with high capacity, consider use Dictionary instead");
+			}
+
+			this.list = new List<KeyValuePair<TKey, TValue>>(capacity);
 			this.keyComparer = keyComparer;
-			Keys = new SubCollection<TKey>(keyComparer, () => this.Count, () => list.Select(x => x.Key).GetEnumerator());
-			Values = new SubCollection<TValue>(EqualityComparer<TValue>.Default, () => this.Count, () => list.Select(x => x.Value).GetEnumerator());
+			this.Keys = new SubCollection<TKey>(keyComparer, () => this.Count, () => this.list.Select(x => x.Key).GetEnumerator());
+			this.Values = new SubCollection<TValue>(EqualityComparer<TValue>.Default, () => this.Count, () => this.list.Select(x => x.Value).GetEnumerator());
 		}
 
 		public ListDictionary(int capacity) : this(capacity, EqualityComparer<TKey>.Default)
@@ -45,31 +55,32 @@ namespace DXAppProto2
 
 		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
 		{
-			return list.GetEnumerator();
+			return this.list.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-			return GetEnumerator();
+			return this.GetEnumerator();
 		}
 
 		public void Add(KeyValuePair<TKey, TValue> item)
 		{
-			if (ContainsKey(item.Key))
+			if (this.ContainsKey(item.Key))
 			{
 				throw new ArgumentException();
 			}
-			list.Add(item);
+
+			this.list.Add(item);
 		}
 
 		public void Clear()
 		{
-			list.Clear();
+			this.list.Clear();
 		}
 
 		public bool Contains(KeyValuePair<TKey, TValue> item)
 		{
-			return list.Contains(item);
+			return this.list.Contains(item);
 		}
 
 		public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
@@ -79,41 +90,41 @@ namespace DXAppProto2
 
 		public bool Remove(KeyValuePair<TKey, TValue> item)
 		{
-			return list.Remove(item);
+			return this.list.Remove(item);
 		}
 
-		public int Count => list.Count;
+		public int Count => this.list.Count;
 
 		public bool IsReadOnly => false;
 
 		public bool ContainsKey(TKey key)
 		{
-			return list.Exists(x => keyComparer.Equals(x.Key, key));
+			return this.list.Exists(x => keyComparer.Equals(x.Key, key));
 		}
 
 		public void Add(TKey key, TValue value)
 		{
-			Add(new KeyValuePair<TKey, TValue>(key, value));
+			this.Add(new KeyValuePair<TKey, TValue>(key, value));
 		}
 
 		public bool Remove(TKey key)
 		{
-			var i = list.FindIndex(x => keyComparer.Equals(x.Key, key));
+			var i = this.list.FindIndex(x => keyComparer.Equals(x.Key, key));
 			if (i < 0) return false;
-			list.RemoveAt(i);
+			this.list.RemoveAt(i);
 			return true;
 		}
 
 		public bool TryGetValue(TKey key, out TValue value)
 		{
-			var i = list.FindIndex(x => keyComparer.Equals(x.Key, key));
+			var i = this.list.FindIndex(x => keyComparer.Equals(x.Key, key));
 			if (i < 0)
 			{
 				value = default(TValue);
 				return false;
 			}
 
-			value = list[i].Value;
+			value = this.list[i].Value;
 			return true;
 		}
 
@@ -128,14 +139,14 @@ namespace DXAppProto2
 
 			set
 			{
-				var i = list.FindIndex(x => keyComparer.Equals(x.Key, key));
+				var i = this.list.FindIndex(x => keyComparer.Equals(x.Key, key));
 				if (i < 0)
 				{
-					list.Add(new KeyValuePair<TKey, TValue>(key, value));
+					this.list.Add(new KeyValuePair<TKey, TValue>(key, value));
 				}
 				else
 				{
-					list[i] = new KeyValuePair<TKey, TValue>(key, value);
+					this.list[i] = new KeyValuePair<TKey, TValue>(key, value);
 				}
 			}
 		}
@@ -146,12 +157,12 @@ namespace DXAppProto2
 
 		IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
 		{
-			get { return Keys; }
+			get { return this.Keys; }
 		}
 
 		IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
 		{
-			get { return Values; }
+			get { return this.Values; }
 		}
 
 		private class SubCollection<T> : ICollection<T>
@@ -205,6 +216,15 @@ namespace DXAppProto2
 			public int Count => countFunc();
 
 			public bool IsReadOnly => true;
+		}
+	}
+
+	public static class EnumerableExtensions
+	{
+		public static ListDictionary<TKey, TValue> ToListDictionary<T, TKey, TValue>(this IEnumerable<T> seq,
+			Func<T, TKey> keySelector, Func<T, TValue> valueSelector)
+		{
+			return new ListDictionary<TKey, TValue>(seq.Select(x => new KeyValuePair<TKey, TValue>(keySelector(x), valueSelector(x))));
 		}
 	}
 }
