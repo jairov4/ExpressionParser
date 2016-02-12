@@ -53,6 +53,7 @@
     <Compile Include="AlgebraicFactor.cs" />
     <Compile Include="IFundamentalPhysicalDimension.cs" />
     <Compile Include="IPhysicalDimension.cs" />
+    <Compile Include="ListDictionary.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scanner.cs" />

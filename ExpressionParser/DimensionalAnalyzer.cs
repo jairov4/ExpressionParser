@@ -80,12 +80,7 @@ namespace DXAppProto2
 
 			return result;
 		}
-
-		public AlgebraicFactor ReplaceDimension(AlgebraicFactor dimensionalFactor, string dimension, string newDimension)
-		{
-			throw new NotImplementedException();
-		}
-
+		
 		public bool AreDimensionalFactorsDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1,
 			AlgebraicFactor dimensionalFactor2)
 		{

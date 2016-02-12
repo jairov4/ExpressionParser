@@ -13,10 +13,8 @@ namespace DXAppProto2
 		IFundamentalPhysicalDimension GetFundamentalPhysicalDimension(string name);
 
 		IPhysicalDimension GetPhysicalDimensionForMeasurementUnit(string measurementUnit);
-		
-		AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor);
 
-		AlgebraicFactor ReplaceDimension(AlgebraicFactor dimensionalFactor, string dimension, string newDimension);
+		AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor);
 
 		bool AreDimensionalFactorsDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1, AlgebraicFactor dimensionalFactor2);
 
