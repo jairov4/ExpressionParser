@@ -15,8 +15,8 @@ namespace DXAppProto2
 		public AlgebraicFactor(IEnumerable<KeyValuePair<string, int>> numerator,
 			IEnumerable<KeyValuePair<string, int>> denominator)
 		{
-			Numerator = CreateDictioanry(numerator);
-			Denominator = CreateDictioanry(denominator);
+			Numerator = CreateDictionary(numerator);
+			Denominator = CreateDictionary(denominator);
 			IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
 			if (Numerator.Any(x => x.Value <= 0))
 			{
@@ -63,7 +63,7 @@ namespace DXAppProto2
 			return r;
 		}
 
-		private ListDictionary CreateDictioanry(IEnumerable<KeyValuePair<string, int>> seq)
+		private ListDictionary CreateDictionary(IEnumerable<KeyValuePair<string, int>> seq)
 		{
 			return seq.ToDictionary(x => x.Key, x => x.Value);
 		}
@@ -87,7 +87,7 @@ namespace DXAppProto2
 
 		public AlgebraicFactor Multiply(AlgebraicFactor other)
 		{
-			var nn = CreateDictioanry(Numerator);
+			var nn = CreateDictionary(Numerator);
 			foreach (var nni in other.Numerator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -100,7 +100,7 @@ namespace DXAppProto2
 				}
 			}
 
-			var nd = CreateDictioanry(Denominator);
+			var nd = CreateDictionary(Denominator);
 			foreach (var ndi in other.Denominator)
 			{
 				if (nd.ContainsKey(ndi.Key))
@@ -120,7 +120,7 @@ namespace DXAppProto2
 
 		public AlgebraicFactor Divide(AlgebraicFactor other)
 		{
-			var nn = CreateDictioanry(Numerator);
+			var nn = CreateDictionary(Numerator);
 			foreach (var nni in other.Denominator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -133,7 +133,7 @@ namespace DXAppProto2
 				}
 			}
 
-			var nd = CreateDictioanry(Denominator);
+			var nd = CreateDictionary(Denominator);
 			foreach (var ndi in other.Numerator)
 			{
 				if (nd.ContainsKey(ndi.Key))
