@@ -31,7 +31,7 @@
 		{
 			private IFilterExpressionExecutionContext Repository { get; }
 
-			private Dictionary<FilterExpressionNode, AlgebraicFactor> units;
+			private readonly Dictionary<FilterExpressionNode, AlgebraicFactor> units;
 
 			public IReadOnlyDictionary<FilterExpressionNode, AlgebraicFactor> UnitsByNode => units;
 
@@ -73,7 +73,7 @@
 			public void Visit(FilterExpressionUnaryNode node, FilterExpressionVisitorAction action)
 			{
 				if (action == FilterExpressionVisitorAction.Enter) return;
-                units.Add(node, units[node]);
+                units.Add(node, units[node.Operand]);
             }
 
 			public void Visit(FilterExpressionBinaryNode node, FilterExpressionVisitorAction action)
