@@ -1,19 +1,22 @@
-﻿namespace DXAppProto2
+﻿using System.Diagnostics;
+
+namespace DXAppProto2
 {
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
+	using ListDictionary = System.Collections.Generic.Dictionary<string, int>;
 
 	public class AlgebraicFactor : IEquatable<AlgebraicFactor>
 	{
 		public static readonly AlgebraicFactor Dimensionless =
-			new AlgebraicFactor(new Dictionary<string, int>(), new Dictionary<string, int>());
+			new AlgebraicFactor(new ListDictionary(), new ListDictionary());
 
 		public AlgebraicFactor(IEnumerable<KeyValuePair<string, int>> numerator,
 			IEnumerable<KeyValuePair<string, int>> denominator)
 		{
-			Numerator = numerator.ToDictionary(x => x.Key, x => x.Value);
-			Denominator = denominator.ToDictionary(x => x.Key, x => x.Value);
+			Numerator = CreateDictioanry(numerator);
+			Denominator = CreateDictioanry(denominator);
 			IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
 			if (Numerator.Any(x => x.Value <= 0))
 			{
@@ -26,7 +29,7 @@
 			}
 		}
 
-		private AlgebraicFactor(ListDictionary<string, int> numerator, ListDictionary<string, int> denominator)
+		private AlgebraicFactor(ListDictionary numerator, ListDictionary denominator)
 		{
 			Numerator = numerator;
 			Denominator = denominator;
@@ -60,6 +63,11 @@
 			return r;
 		}
 
+		private ListDictionary CreateDictioanry(IEnumerable<KeyValuePair<string, int>> seq)
+		{
+			return seq.ToDictionary(x => x.Key, x => x.Value);
+		}
+
 		private bool DictionaryEquals(IReadOnlyDictionary<string, int> a, IReadOnlyDictionary<string, int> b)
 		{
 			return a.OrderBy(x => x.Key).SequenceEqual(b.OrderBy(x => x.Key));
@@ -72,14 +80,14 @@
 
 		public static AlgebraicFactor FromSymbol(string symbol, int power = 1)
 		{
-			var num = new ListDictionary<string, int> {{symbol, power}};
-			var den = new ListDictionary<string, int>(0);
+			var num = new ListDictionary {{symbol, power}};
+			var den = new ListDictionary(0);
 			return new AlgebraicFactor(num, den);
 		}
 
 		public AlgebraicFactor Multiply(AlgebraicFactor other)
 		{
-			var nn = Numerator.ToDictionary(x => x.Key, x => x.Value);
+			var nn = CreateDictioanry(Numerator);
 			foreach (var nni in other.Numerator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -92,7 +100,7 @@
 				}
 			}
 
-			var nd = Denominator.ToDictionary(x => x.Key, x => x.Value);
+			var nd = CreateDictioanry(Denominator);
 			foreach (var ndi in other.Denominator)
 			{
 				if (nd.ContainsKey(ndi.Key))
@@ -112,7 +120,7 @@
 
 		public AlgebraicFactor Divide(AlgebraicFactor other)
 		{
-			var nn = Numerator.ToDictionary(x => x.Key, x => x.Value);
+			var nn = CreateDictioanry(Numerator);
 			foreach (var nni in other.Denominator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -125,7 +133,7 @@
 				}
 			}
 
-			var nd = Denominator.ToDictionary(x => x.Key, x => x.Value);
+			var nd = CreateDictioanry(Denominator);
 			foreach (var ndi in other.Numerator)
 			{
 				if (nd.ContainsKey(ndi.Key))
