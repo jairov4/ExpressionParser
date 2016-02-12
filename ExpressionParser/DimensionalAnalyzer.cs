@@ -69,7 +69,7 @@ namespace DXAppProto2
 						}
 						else
 						{
-							var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+							var factor = AlgebraicFactor.FromSymbol(dim.Name, pair.Value);
 							result = aggregate(result, factor);
 						}
 					}
@@ -90,7 +90,7 @@ namespace DXAppProto2
 			AlgebraicFactor dimensionalFactor2)
 		{
 			var factor1 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
-			var factor2 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
+			var factor2 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor2);
 			return factor1.Equals(factor2);
 		}
 
@@ -203,7 +203,7 @@ namespace DXAppProto2
 			Action<IReadOnlyDictionary<string, int>, Func<AlgebraicFactor, AlgebraicFactor, AlgebraicFactor>> process =
 				(terms, aggregate) =>
 				{
-					foreach (var pair in dimensionalFactor.Numerator)
+					foreach (var pair in terms)
 					{
 						ComposedPhysicalDimension cdimension;
 						if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
@@ -213,7 +213,7 @@ namespace DXAppProto2
 						else
 						{
 							var dim = fundamentalPhysicalDimensions[pair.Key];
-							var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+							var factor = AlgebraicFactor.FromSymbol(dim.Name, pair.Value);
 							result = aggregate(result, factor);
 						}
 					}

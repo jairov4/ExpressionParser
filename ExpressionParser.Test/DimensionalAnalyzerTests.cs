@@ -51,7 +51,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("force", "N");
 			dim.AddFundamentalDimension("area", "m2");
 
-			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			var psi = AlgebraicFactor.FromSymbol("N").Divide(AlgebraicFactor.FromSymbol("m2"));
 			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			Assert.AreEqual(2, dim.FundamentalPhysicalDimensions.Count);
@@ -71,7 +71,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("force", "N");
 			dim.AddFundamentalDimension("area", "m2");
 
-			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			var psi = AlgebraicFactor.FromSymbol("N").Divide(AlgebraicFactor.FromSymbol("m2"));
 			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			dim.AddMultiplierMeasurementUnit("atm", "psi", new ConversionParameters(14.6959, 0));
@@ -90,12 +90,12 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("force", "N");
 			dim.AddFundamentalDimension("area", "m2");
 
-			var psi = AlgebraicFactor.FromSingleUnit("N").Divide(AlgebraicFactor.FromSingleUnit("m2"));
+			var psi = AlgebraicFactor.FromSymbol("N").Divide(AlgebraicFactor.FromSymbol("m2"));
 			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			dim.AddMultiplierMeasurementUnit("atm", "psi", new ConversionParameters(14.6959, 0));
 			
-			Assert.IsTrue(dim.AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor.FromSingleUnit("atm"), psi));
+			Assert.IsTrue(dim.AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor.FromSymbol("atm"), psi));
 		}
 
 		[TestMethod]
@@ -105,7 +105,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("distance", "m");
 			dim.AddMultiplierMeasurementUnit("km", "m", new ConversionParameters(1000, 0));
 
-			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("m"), AlgebraicFactor.FromSingleUnit("km"));
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSymbol("m"), AlgebraicFactor.FromSymbol("km"));
 
 			Assert.AreEqual(0.001, result.Factor);
 			Assert.AreEqual(0.000, result.Offset);
@@ -118,7 +118,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("distance", "m");
 			dim.AddMultiplierMeasurementUnit("km", "m", new ConversionParameters(1000, 0));
 
-			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("km"), AlgebraicFactor.FromSingleUnit("m"));
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSymbol("km"), AlgebraicFactor.FromSymbol("m"));
 
 			Assert.AreEqual(1000, result.Factor);
 			Assert.AreEqual(0.000, result.Offset);
@@ -131,7 +131,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("temperature", "C");
 			dim.AddMultiplierMeasurementUnit("F", "C", new ConversionParameters(5.0/9, -160.0/9));
 
-			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("F"), AlgebraicFactor.FromSingleUnit("C"));
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSymbol("F"), AlgebraicFactor.FromSymbol("C"));
 
 			Assert.AreEqual(5.0/9, result.Factor, 1e-6);
 			Assert.AreEqual(-160.0/9, result.Offset, 1e-6);
@@ -144,10 +144,68 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("temperature", "C");
 			dim.AddMultiplierMeasurementUnit("F", "C", new ConversionParameters(5.0/9, -160.0/9));
 
-			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("C"), AlgebraicFactor.FromSingleUnit("F"));
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSymbol("C"), AlgebraicFactor.FromSymbol("F"));
 
 			Assert.AreEqual(9.0/5, result.Factor, 1e-6);
 			Assert.AreEqual(32.0, result.Offset, 1e-6);
+		}
+
+		[TestMethod]
+		public void WithSimpleConversionParameters_TestApplyConversion_ExpectedRightValue()
+		{
+			var dim = new DimensionalAnalyzer();
+			var conversionParameters = new ConversionParameters(1000.0, 5);
+			var result = dim.ApplyConversion(5, conversionParameters);
+
+			Assert.AreEqual(5005.0, result, 1e-6);
+		}
+
+		[TestMethod]
+		public void WithUnits_TestAreDimensionallyEquivalent_ExpectedTrue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("distance", "m");
+			dim.AddFundamentalDimension("time", "h");
+			dim.AddComposedDimension("speed", "mph",
+				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h")), new ConversionParameters(1, 0));
+			
+			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
+				AlgebraicFactor.FromSymbol("speed"),
+				AlgebraicFactor.FromSymbol("distance").Divide(AlgebraicFactor.FromSymbol("time")));
+
+			Assert.IsTrue(result);
+		}
+
+		[TestMethod]
+		public void WithExponentialUnits_TestAreDimensionallyEquivalent_ExpectedTrue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("distance", "m");
+			dim.AddFundamentalDimension("time", "h");
+			dim.AddComposedDimension("acceleration", "mph2",
+				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))), new ConversionParameters(1, 0));
+
+			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
+				AlgebraicFactor.FromSymbol("acceleration"),
+				AlgebraicFactor.FromSymbol("distance").Divide(AlgebraicFactor.FromSymbol("time", 2)));
+
+			Assert.IsTrue(result);
+		}
+
+		[TestMethod]
+		public void WithExponentialUnits_TestAreDimensionallyEquivalent_ExpectedFalse()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("distance", "m");
+			dim.AddFundamentalDimension("time", "h");
+			dim.AddComposedDimension("acceleration", "mph2",
+				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))), new ConversionParameters(1, 0));
+
+			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
+				AlgebraicFactor.FromSymbol("time"),
+				AlgebraicFactor.FromSymbol("distance").Divide(AlgebraicFactor.FromSymbol("time")));
+
+			Assert.IsFalse(result);
 		}
 	}
 }

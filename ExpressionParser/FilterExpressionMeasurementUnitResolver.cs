@@ -51,7 +51,7 @@
             public void Visit(FilterExpressionLiteralNode node, FilterExpressionVisitorAction action)
             {
                 if (action == FilterExpressionVisitorAction.Enter) return;
-                var u = AlgebraicFactor.FromSingleUnit(node.MeasurementUnit);
+                var u = AlgebraicFactor.FromSymbol(node.MeasurementUnit);
 				units.Add(node, u);
             }
 

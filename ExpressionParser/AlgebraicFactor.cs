@@ -70,9 +70,9 @@
 			return d.Aggregate(397, (current, pair) => current ^ pair.GetHashCode());
 		}
 
-		public static AlgebraicFactor FromSingleUnit(string measurementUnit)
+		public static AlgebraicFactor FromSymbol(string symbol, int power = 1)
 		{
-			var num = new Dictionary<string, int> {{measurementUnit, 1}};
+			var num = new Dictionary<string, int> {{symbol, power}};
 			var den = new Dictionary<string, int>(0);
 			return new AlgebraicFactor(num, den);
 		}
