@@ -22,6 +22,8 @@ namespace DXAppProto2
 
 		bool AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor unitFactor1, AlgebraicFactor unitFactor2);
 
-		double ConvertUnits(double quantity, AlgebraicFactor currentUnits, AlgebraicFactor targetUnits);
+		ConversionParameters GetConversionParameters(AlgebraicFactor currentUnits, AlgebraicFactor targetUnits);
+
+		double ApplyConversion(double quantity, ConversionParameters conversionParams);
 	}
 }

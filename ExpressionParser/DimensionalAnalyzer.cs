@@ -56,35 +56,27 @@ namespace DXAppProto2
 		public AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor)
 		{
 			var result = AlgebraicFactor.Dimensionless;
-			foreach (var pair in unitsFactor.Numerator)
-			{
-				var dim = dimensionByUnit[pair.Key];
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+			Action<IReadOnlyDictionary<string, int>, Func<AlgebraicFactor, AlgebraicFactor, AlgebraicFactor>> process =
+				(terms, aggregate) =>
 				{
-					result = result.Multiply(cdimension.DimensionalDefinition);
-				}
-				else
-				{
-					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
-					result = result.Multiply(factor);
-				}
-			}
+					foreach (var pair in terms)
+					{
+						var dim = dimensionByUnit[pair.Key];
+						ComposedPhysicalDimension cdimension;
+						if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+						{
+							result = aggregate(result, cdimension.DimensionalDefinition);
+						}
+						else
+						{
+							var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+							result = aggregate(result, factor);
+						}
+					}
+				};
 
-			foreach (var pair in unitsFactor.Denominator)
-			{
-				var dim = dimensionByUnit[pair.Key];
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
-				{
-					result = result.Divide(cdimension.DimensionalDefinition);
-				}
-				else
-				{
-					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
-					result = result.Divide(factor);
-				}
-			}
+			process(unitsFactor.Numerator, (x, y) => x.Multiply(y));
+			process(unitsFactor.Denominator, (x, y) => x.Divide(y));
 
 			return result;
 		}
@@ -109,49 +101,50 @@ namespace DXAppProto2
 			return factor1.Equals(factor2);
 		}
 
-		public double ConvertUnits(double quantity, AlgebraicFactor currentUnits, AlgebraicFactor targetUnits)
+		public ConversionParameters GetConversionParameters(AlgebraicFactor currentUnits, AlgebraicFactor targetUnits)
+		{
+			var currentToFundamental = GetConversionParametersToFundamentalUnits(currentUnits);
+			var targetToFundamental = GetConversionParametersToFundamentalUnits(targetUnits);
+			var fundamentalToTarget = InvertConversionParameters(targetToFundamental);
+			var currentToTarget = ComposeConversionParameters(currentToFundamental, fundamentalToTarget);
+			return currentToTarget;
+		}
+
+		private ConversionParameters InvertConversionParameters(ConversionParameters parameters)
+		{
+			return  new ConversionParameters(1.0/parameters.Factor, -parameters.Offset/parameters.Factor);
+		}
+
+		private ConversionParameters GetConversionParametersToFundamentalUnits(AlgebraicFactor unitsFactor)
 		{
 			var conversionParams = new ConversionParameters(1.0, 0);
-			var fundamentalUnits = AlgebraicFactor.Dimensionless;
-			foreach (var pair in currentUnits.Numerator)
-			{
-				var unit = pair.Key;
-				var dim = dimensionByUnit[unit];
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+			Action<IReadOnlyDictionary<string, int>, Func<ConversionParameters, ConversionParameters, ConversionParameters>> process =
+				(terms, aggregate) =>
 				{
-					var cparams = cdimension.Multiples[unit];
-					conversionParams = ComposeConversionParameters(conversionParams, cparams);
-					conversionParams = ComposeConversionParameters(conversionParams, cdimension.ConversionParameters);
-					fundamentalUnits = fundamentalUnits.Multiply(cdimension.ReferenceFactor);
-				}
-				else
-				{
-					var cparams = dim.Multiples[unit];
-					conversionParams = ComposeConversionParameters(conversionParams, cparams);
-				}
-			}
+					foreach (var pair in terms)
+					{
+						var unit = pair.Key;
+						var dim = dimensionByUnit[unit];
+						ComposedPhysicalDimension cdimension;
+						if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+						{
+							var cparams = cdimension.Multiples[unit];
 
-			foreach (var pair in currentUnits.Denominator)
-			{
-				var unit = pair.Key;
-				var dim = dimensionByUnit[unit];
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
-				{
-					var cparams = cdimension.Multiples[unit];
-					conversionParams = ComposeConversionParameters(conversionParams, cparams);
-					conversionParams = ComposeConversionParameters(conversionParams, cdimension.ConversionParameters);
-					fundamentalUnits = fundamentalUnits.Multiply(cdimension.ReferenceFactor);
-				}
-				else
-				{
-					var cparams = dim.Multiples[unit];
-					conversionParams = ComposeConversionParameters(conversionParams, cparams);
-				}
-			}
+							conversionParams = aggregate(conversionParams, cparams);
+							conversionParams = aggregate(conversionParams, cdimension.ConversionParameters);
+						}
+						else
+						{
+							var cparams = dim.Multiples[unit];
+							conversionParams = aggregate(conversionParams, cparams);
+						}
+					}
+				};
 
-			return ApplyConversion(quantity, conversionParams);
+			process(unitsFactor.Numerator, ComposeConversionParameters);
+			process(unitsFactor.Denominator, (x,y) => ComposeConversionParameters(x, InvertConversionParameters(y)));
+
+			return conversionParams;
 		}
 
 		public void AddFundamentalDimension(string dimensionName, string newFundamentalUnit)
@@ -207,40 +200,32 @@ namespace DXAppProto2
 		public AlgebraicFactor GetFundamentalDimensionalFactorFromDimensionalFactor(AlgebraicFactor dimensionalFactor)
 		{
 			var result = AlgebraicFactor.Dimensionless;
-			foreach (var pair in dimensionalFactor.Numerator)
-			{
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
+			Action<IReadOnlyDictionary<string, int>, Func<AlgebraicFactor, AlgebraicFactor, AlgebraicFactor>> process =
+				(terms, aggregate) =>
 				{
-					result = result.Multiply(cdimension.DimensionalDefinition);
-				}
-				else
-				{
-					var dim = fundamentalPhysicalDimensions[pair.Key];
-					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
-					result = result.Multiply(factor);
-				}
-			}
+					foreach (var pair in dimensionalFactor.Numerator)
+					{
+						ComposedPhysicalDimension cdimension;
+						if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
+						{
+							result = aggregate(result, cdimension.DimensionalDefinition);
+						}
+						else
+						{
+							var dim = fundamentalPhysicalDimensions[pair.Key];
+							var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
+							result = aggregate(result, factor);
+						}
+					}
+				};
 
-			foreach (var pair in dimensionalFactor.Denominator)
-			{
-				ComposedPhysicalDimension cdimension;
-				if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
-				{
-					result = result.Divide(cdimension.DimensionalDefinition);
-				}
-				else
-				{
-					var dim = fundamentalPhysicalDimensions[pair.Key];
-					var factor = AlgebraicFactor.FromSingleUnit(dim.Name);
-					result = result.Divide(factor);
-				}
-			}
+			process(dimensionalFactor.Numerator, (x, y) => x.Multiply(y));
+			process(dimensionalFactor.Denominator, (x, y) => x.Divide(y));
 
 			return result;
 		}
 
-		private double ApplyConversion(double quantity, ConversionParameters conversionParams)
+		public double ApplyConversion(double quantity, ConversionParameters conversionParams)
 		{
 			return quantity*conversionParams.Factor + conversionParams.Offset;
 		}

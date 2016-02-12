@@ -99,15 +99,55 @@ namespace ExpressionParser.Test
 		}
 
 		[TestMethod]
-		public void WithSimpleMulplierUnitAndFoundamentalUnit_TestConvertUnits_ExpectedRightValue()
+		public void WithFundamentalUnit_TestGetConversionParameters_ExpectedRightValue()
 		{
 			var dim = new DimensionalAnalyzer();
 			dim.AddFundamentalDimension("distance", "m");
 			dim.AddMultiplierMeasurementUnit("km", "m", new ConversionParameters(1000, 0));
 
-			var result = dim.ConvertUnits(1000, AlgebraicFactor.FromSingleUnit("m"), AlgebraicFactor.FromSingleUnit("km"));
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("m"), AlgebraicFactor.FromSingleUnit("km"));
 
-			Assert.AreEqual(1.0, result);
+			Assert.AreEqual(0.001, result.Factor);
+			Assert.AreEqual(0.000, result.Offset);
+		}
+
+		[TestMethod]
+		public void WithMultiplierUnit_TestGetConversionParameters_ExpectedRightValue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("distance", "m");
+			dim.AddMultiplierMeasurementUnit("km", "m", new ConversionParameters(1000, 0));
+
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("km"), AlgebraicFactor.FromSingleUnit("m"));
+
+			Assert.AreEqual(1000, result.Factor);
+			Assert.AreEqual(0.000, result.Offset);
+		}
+
+		[TestMethod]
+		public void WithFractionalMultiplierUnit_TestGetConversionParameters_ExpectedRightValue()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("temperature", "C");
+			dim.AddMultiplierMeasurementUnit("F", "C", new ConversionParameters(5.0/9, -160.0/9));
+
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("F"), AlgebraicFactor.FromSingleUnit("C"));
+
+			Assert.AreEqual(5.0/9, result.Factor, 1e-6);
+			Assert.AreEqual(-160.0/9, result.Offset, 1e-6);
+		}
+
+		[TestMethod]
+		public void WithFractionalMultiplierUnit_TestGetConversionParameters_ExpectedRightValue2()
+		{
+			var dim = new DimensionalAnalyzer();
+			dim.AddFundamentalDimension("temperature", "C");
+			dim.AddMultiplierMeasurementUnit("F", "C", new ConversionParameters(5.0/9, -160.0/9));
+
+			var result = dim.GetConversionParameters(AlgebraicFactor.FromSingleUnit("C"), AlgebraicFactor.FromSingleUnit("F"));
+
+			Assert.AreEqual(9.0/5, result.Factor, 1e-6);
+			Assert.AreEqual(32.0, result.Offset, 1e-6);
 		}
 	}
 }
