@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
+	using System.Collections.Generic;
+
 	public interface IDimensionalAnalyzer
 	{
 		IReadOnlyCollection<string> ComposedPhysicalDimensions { get; }

@@ -4,8 +4,8 @@
 	{
 		public ConversionParameters(double factor, double offset)
 		{
-			Factor = factor;
-			Offset = offset;
+			this.Factor = factor;
+			this.Offset = offset;
 		}
 
 		public double Factor { get; }

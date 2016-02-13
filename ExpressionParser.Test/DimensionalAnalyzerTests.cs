@@ -1,13 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using DXAppProto2;
-using DXAppProto2.FilterExpressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace ExpressionParser.Test
+﻿namespace ExpressionParser.Test
 {
+	using System.Linq;
+	using DXAppProto2;
+	using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 	[TestClass]
 	public class DimensionalAnalyzerTests
 	{
@@ -94,7 +90,7 @@ namespace ExpressionParser.Test
 			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
 			dim.AddMultiplierMeasurementUnit("atm", "psi", new ConversionParameters(14.6959, 0));
-			
+
 			Assert.IsTrue(dim.AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor.FromSymbol("atm"), psi));
 		}
 
@@ -168,7 +164,7 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("time", "h");
 			dim.AddComposedDimension("speed", "mph",
 				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h")), new ConversionParameters(1, 0));
-			
+
 			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
 				AlgebraicFactor.FromSymbol("speed"),
 				AlgebraicFactor.FromSymbol("distance").Divide(AlgebraicFactor.FromSymbol("time")));
@@ -183,7 +179,8 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("distance", "m");
 			dim.AddFundamentalDimension("time", "h");
 			dim.AddComposedDimension("acceleration", "mph2",
-				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))), new ConversionParameters(1, 0));
+				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))),
+				new ConversionParameters(1, 0));
 
 			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
 				AlgebraicFactor.FromSymbol("acceleration"),
@@ -199,7 +196,8 @@ namespace ExpressionParser.Test
 			dim.AddFundamentalDimension("distance", "m");
 			dim.AddFundamentalDimension("time", "h");
 			dim.AddComposedDimension("acceleration", "mph2",
-				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))), new ConversionParameters(1, 0));
+				AlgebraicFactor.FromSymbol("m").Divide(AlgebraicFactor.FromSymbol("h").Multiply(AlgebraicFactor.FromSymbol("h"))),
+				new ConversionParameters(1, 0));
 
 			var result = dim.AreDimensionalFactorsDimensionallyEquivalent(
 				AlgebraicFactor.FromSymbol("time"),

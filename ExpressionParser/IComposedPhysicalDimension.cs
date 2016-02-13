@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
 	public interface IComposedPhysicalDimension : IPhysicalDimension
 	{

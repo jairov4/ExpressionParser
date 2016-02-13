@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+
 	/// <summary>
 	/// Allows to analyze multiple expressions with measurement unit and physical dimension awareness.
 	/// 
-	/// This class differences two types of information contained in <see cref="AlgebraicFactor"/>, sometimes
+	/// This class differences two types of information contained in <see cref="AlgebraicFactor" />, sometimes
 	/// an algebraic factor is an expression containing measurement units pe. kg*m/s^2. But, sometimes it
-	/// is an expression of physical dimensions pe. mass*distance/time^2. They are called Units Factors and 
+	/// is an expression of physical dimensions pe. mass*distance/time^2. They are called Units Factors and
 	/// Dimensional Factors respectively.
 	/// 
-	/// This analyzer models two kinds of physical dimensions. <see cref="IFundamentalPhysicalDimension"/>  are physical dimensions
-	/// that you assume measure a very basic concept in nature. <see cref="IComposedPhysicalDimension"/> are physical dimensions 
+	/// This analyzer models two kinds of physical dimensions. <see cref="IFundamentalPhysicalDimension" /> are physical dimensions
+	/// that you assume measure a very basic concept in nature. <see cref="IComposedPhysicalDimension" /> are physical dimensions
 	/// that you can express in terms of other physical dimensions.
 	/// </summary>
 	public class DimensionalAnalyzer : IDimensionalAnalyzer
@@ -28,29 +28,29 @@ namespace DXAppProto2
 
 		public DimensionalAnalyzer()
 		{
-			composedPhysicalDimensions = new Dictionary<string, ComposedPhysicalDimension>();
-			fundamentalPhysicalDimensions = new Dictionary<string, FundamentalPhysicalDimension>();
-			dimensionByUnit = new Dictionary<string, IPhysicalDimension>();
-			fundamentalMeasurementUnits = new HashSet<string>();
+			this.composedPhysicalDimensions = new Dictionary<string, ComposedPhysicalDimension>();
+			this.fundamentalPhysicalDimensions = new Dictionary<string, FundamentalPhysicalDimension>();
+			this.dimensionByUnit = new Dictionary<string, IPhysicalDimension>();
+			this.fundamentalMeasurementUnits = new HashSet<string>();
 		}
 
-		public IReadOnlyCollection<string> ComposedPhysicalDimensions => composedPhysicalDimensions.Keys;
+		public IReadOnlyCollection<string> ComposedPhysicalDimensions => this.composedPhysicalDimensions.Keys;
 
-		public IReadOnlyCollection<string> FundamentalPhysicalDimensions => fundamentalPhysicalDimensions.Keys;
+		public IReadOnlyCollection<string> FundamentalPhysicalDimensions => this.fundamentalPhysicalDimensions.Keys;
 
 		public IComposedPhysicalDimension GetComposedPhysicalDimension(string name)
 		{
-			return composedPhysicalDimensions[name];
+			return this.composedPhysicalDimensions[name];
 		}
 
 		public IFundamentalPhysicalDimension GetFundamentalPhysicalDimension(string name)
 		{
-			return fundamentalPhysicalDimensions[name];
+			return this.fundamentalPhysicalDimensions[name];
 		}
 
 		public IPhysicalDimension GetPhysicalDimensionForMeasurementUnit(string measurementUnit)
 		{
-			return dimensionByUnit[measurementUnit];
+			return this.dimensionByUnit[measurementUnit];
 		}
 
 		public AlgebraicFactor GetFundamentalDimensionalFactorFromUnitsFactor(AlgebraicFactor unitsFactor)
@@ -61,9 +61,9 @@ namespace DXAppProto2
 				{
 					foreach (var pair in terms)
 					{
-						var dim = dimensionByUnit[pair.Key];
+						var dim = this.dimensionByUnit[pair.Key];
 						ComposedPhysicalDimension cdimension;
-						if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+						if (this.composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
 						{
 							result = aggregate(result, cdimension.DimensionalDefinition);
 						}
@@ -80,34 +80,39 @@ namespace DXAppProto2
 
 			return result;
 		}
-		
+
 		public bool AreDimensionalFactorsDimensionallyEquivalent(AlgebraicFactor dimensionalFactor1,
 			AlgebraicFactor dimensionalFactor2)
 		{
-			var factor1 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
-			var factor2 = GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor2);
+			var factor1 = this.GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor1);
+			var factor2 = this.GetFundamentalDimensionalFactorFromDimensionalFactor(dimensionalFactor2);
 			return factor1.Equals(factor2);
 		}
 
 		public bool AreUnitFactorsDimensionallyEquivalent(AlgebraicFactor unitFactor1, AlgebraicFactor unitFactor2)
 		{
-			var factor1 = GetFundamentalDimensionalFactorFromUnitsFactor(unitFactor1);
-			var factor2 = GetFundamentalDimensionalFactorFromUnitsFactor(unitFactor2);
+			var factor1 = this.GetFundamentalDimensionalFactorFromUnitsFactor(unitFactor1);
+			var factor2 = this.GetFundamentalDimensionalFactorFromUnitsFactor(unitFactor2);
 			return factor1.Equals(factor2);
 		}
 
 		public ConversionParameters GetConversionParameters(AlgebraicFactor currentUnits, AlgebraicFactor targetUnits)
 		{
-			var currentToFundamental = GetConversionParametersToFundamentalUnits(currentUnits);
-			var targetToFundamental = GetConversionParametersToFundamentalUnits(targetUnits);
-			var fundamentalToTarget = InvertConversionParameters(targetToFundamental);
-			var currentToTarget = ComposeConversionParameters(currentToFundamental, fundamentalToTarget);
+			var currentToFundamental = this.GetConversionParametersToFundamentalUnits(currentUnits);
+			var targetToFundamental = this.GetConversionParametersToFundamentalUnits(targetUnits);
+			var fundamentalToTarget = this.InvertConversionParameters(targetToFundamental);
+			var currentToTarget = this.ComposeConversionParameters(currentToFundamental, fundamentalToTarget);
 			return currentToTarget;
+		}
+
+		public double ApplyConversion(double quantity, ConversionParameters conversionParams)
+		{
+			return quantity*conversionParams.Factor + conversionParams.Offset;
 		}
 
 		private ConversionParameters InvertConversionParameters(ConversionParameters parameters)
 		{
-			return  new ConversionParameters(1.0/parameters.Factor, -parameters.Offset/parameters.Factor);
+			return new ConversionParameters(1.0/parameters.Factor, -parameters.Offset/parameters.Factor);
 		}
 
 		private ConversionParameters GetConversionParametersToFundamentalUnits(AlgebraicFactor unitsFactor)
@@ -119,9 +124,9 @@ namespace DXAppProto2
 					foreach (var pair in terms)
 					{
 						var unit = pair.Key;
-						var dim = dimensionByUnit[unit];
+						var dim = this.dimensionByUnit[unit];
 						ComposedPhysicalDimension cdimension;
-						if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+						if (this.composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
 						{
 							var cparams = cdimension.Multiples[unit];
 
@@ -136,59 +141,59 @@ namespace DXAppProto2
 					}
 				};
 
-			process(unitsFactor.Numerator, ComposeConversionParameters);
-			process(unitsFactor.Denominator, (x,y) => ComposeConversionParameters(x, InvertConversionParameters(y)));
+			process(unitsFactor.Numerator, this.ComposeConversionParameters);
+			process(unitsFactor.Denominator, (x, y) => this.ComposeConversionParameters(x, this.InvertConversionParameters(y)));
 
 			return conversionParams;
 		}
 
 		public void AddFundamentalDimension(string dimensionName, string newFundamentalUnit)
 		{
-			if (fundamentalPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
-			if (composedPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
-			if (dimensionByUnit.ContainsKey(newFundamentalUnit)) throw new ArgumentException(nameof(newFundamentalUnit));
+			if (this.fundamentalPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
+			if (this.composedPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
+			if (this.dimensionByUnit.ContainsKey(newFundamentalUnit)) throw new ArgumentException(nameof(newFundamentalUnit));
 
 			var dimension = new FundamentalPhysicalDimension(dimensionName, newFundamentalUnit);
-			fundamentalPhysicalDimensions.Add(dimensionName, dimension);
-			dimensionByUnit.Add(newFundamentalUnit, dimension);
-			fundamentalMeasurementUnits.Add(newFundamentalUnit);
+			this.fundamentalPhysicalDimensions.Add(dimensionName, dimension);
+			this.dimensionByUnit.Add(newFundamentalUnit, dimension);
+			this.fundamentalMeasurementUnits.Add(newFundamentalUnit);
 		}
 
 		public void AddComposedDimension(string dimensionName, string newUnit, AlgebraicFactor referenceFactor,
 			ConversionParameters conversionParameters)
 		{
-			if (fundamentalPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
-			if (composedPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
-			if (dimensionByUnit.ContainsKey(newUnit)) throw new ArgumentException(nameof(newUnit));
-			if (!referenceFactor.Numerator.All(x => fundamentalMeasurementUnits.Contains(x.Key)))
+			if (this.fundamentalPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
+			if (this.composedPhysicalDimensions.ContainsKey(dimensionName)) throw new ArgumentException(nameof(dimensionName));
+			if (this.dimensionByUnit.ContainsKey(newUnit)) throw new ArgumentException(nameof(newUnit));
+			if (!referenceFactor.Numerator.All(x => this.fundamentalMeasurementUnits.Contains(x.Key)))
 				throw new ArgumentException(nameof(referenceFactor));
-			if (!referenceFactor.Denominator.All(x => fundamentalMeasurementUnits.Contains(x.Key)))
+			if (!referenceFactor.Denominator.All(x => this.fundamentalMeasurementUnits.Contains(x.Key)))
 				throw new ArgumentException(nameof(referenceFactor));
 
-			var dimensionalDefinition = GetFundamentalDimensionalFactorFromUnitsFactor(referenceFactor);
+			var dimensionalDefinition = this.GetFundamentalDimensionalFactorFromUnitsFactor(referenceFactor);
 			var dimension = new ComposedPhysicalDimension(dimensionName, dimensionalDefinition, referenceFactor,
 				conversionParameters, newUnit);
-			composedPhysicalDimensions.Add(dimensionName, dimension);
-			dimensionByUnit.Add(newUnit, dimension);
+			this.composedPhysicalDimensions.Add(dimensionName, dimension);
+			this.dimensionByUnit.Add(newUnit, dimension);
 		}
 
 		public void AddMultiplierMeasurementUnit(string newUnit, string basicUnit, ConversionParameters conversionParameters)
 		{
-			if (dimensionByUnit.ContainsKey(newUnit)) throw new ArgumentException(nameof(newUnit));
-			if (!dimensionByUnit.ContainsKey(basicUnit)) throw new ArgumentException(nameof(basicUnit));
+			if (this.dimensionByUnit.ContainsKey(newUnit)) throw new ArgumentException(nameof(newUnit));
+			if (!this.dimensionByUnit.ContainsKey(basicUnit)) throw new ArgumentException(nameof(basicUnit));
 
-			var dim = dimensionByUnit[basicUnit];
+			var dim = this.dimensionByUnit[basicUnit];
 			ComposedPhysicalDimension cdimension;
-			if (composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
+			if (this.composedPhysicalDimensions.TryGetValue(dim.Name, out cdimension))
 			{
 				cdimension.Multiples.Add(newUnit, conversionParameters);
-				dimensionByUnit.Add(newUnit, cdimension);
+				this.dimensionByUnit.Add(newUnit, cdimension);
 			}
 			else
 			{
-				var fdimension = fundamentalPhysicalDimensions[dim.Name];
+				var fdimension = this.fundamentalPhysicalDimensions[dim.Name];
 				fdimension.Multiples.Add(newUnit, conversionParameters);
-				dimensionByUnit.Add(newUnit, fdimension);
+				this.dimensionByUnit.Add(newUnit, fdimension);
 			}
 		}
 
@@ -201,13 +206,13 @@ namespace DXAppProto2
 					foreach (var pair in terms)
 					{
 						ComposedPhysicalDimension cdimension;
-						if (composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
+						if (this.composedPhysicalDimensions.TryGetValue(pair.Key, out cdimension))
 						{
 							result = aggregate(result, cdimension.DimensionalDefinition);
 						}
 						else
 						{
-							var dim = fundamentalPhysicalDimensions[pair.Key];
+							var dim = this.fundamentalPhysicalDimensions[pair.Key];
 							var factor = AlgebraicFactor.FromSymbol(dim.Name, pair.Value);
 							result = aggregate(result, factor);
 						}
@@ -218,11 +223,6 @@ namespace DXAppProto2
 			process(dimensionalFactor.Denominator, (x, y) => x.Divide(y));
 
 			return result;
-		}
-
-		public double ApplyConversion(double quantity, ConversionParameters conversionParams)
-		{
-			return quantity*conversionParams.Factor + conversionParams.Offset;
 		}
 
 		public ConversionParameters ComposeConversionParameters(ConversionParameters p1, ConversionParameters p2)

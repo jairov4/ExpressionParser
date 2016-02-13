@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace DXAppProto2
+﻿namespace DXAppProto2
 {
 	using System;
 	using System.Collections.Generic;
@@ -12,18 +10,28 @@ namespace DXAppProto2
 		public static readonly AlgebraicFactor Dimensionless =
 			new AlgebraicFactor(new ListDictionary(), new ListDictionary());
 
+		/// <summary>Gets the numerator. Keys are measurement units, Values are power of measurement unit</summary>
+		/// <value>The numerator.</value>
+		public IReadOnlyDictionary<string, int> Numerator { get; }
+
+		/// <summary>Gets the denominator. Keys are measurement units, Values are power of measurement unit</summary>
+		/// <value>The denominator.</value>
+		public IReadOnlyDictionary<string, int> Denominator { get; }
+
+		public bool IsDimensionless { get; }
+
 		public AlgebraicFactor(IEnumerable<KeyValuePair<string, int>> numerator,
 			IEnumerable<KeyValuePair<string, int>> denominator)
 		{
-			Numerator = CreateDictionary(numerator);
-			Denominator = CreateDictionary(denominator);
-			IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
-			if (Numerator.Any(x => x.Value <= 0))
+			this.Numerator = this.CreateDictionary(numerator);
+			this.Denominator = this.CreateDictionary(denominator);
+			this.IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
+			if (this.Numerator.Any(x => x.Value <= 0))
 			{
 				throw new ArgumentOutOfRangeException(nameof(numerator));
 			}
 
-			if (Denominator.Any(x => x.Value <= 0))
+			if (this.Denominator.Any(x => x.Value <= 0))
 			{
 				throw new ArgumentOutOfRangeException(nameof(denominator));
 			}
@@ -31,32 +39,14 @@ namespace DXAppProto2
 
 		private AlgebraicFactor(ListDictionary numerator, ListDictionary denominator)
 		{
-			Numerator = numerator;
-			Denominator = denominator;
-			IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
+			this.Numerator = numerator;
+			this.Denominator = denominator;
+			this.IsDimensionless = this.DictionaryEquals(this.Numerator, this.Denominator);
 		}
-
-		/// <summary>
-		/// Gets the numerator. Keys are measurement units, Values are power of measurement unit
-		/// </summary>
-		/// <value>
-		/// The numerator.
-		/// </value>
-		public IReadOnlyDictionary<string, int> Numerator { get; }
-
-		/// <summary>
-		/// Gets the denominator. Keys are measurement units, Values are power of measurement unit
-		/// </summary>
-		/// <value>
-		/// The denominator.
-		/// </value>
-		public IReadOnlyDictionary<string, int> Denominator { get; }
-
-		public bool IsDimensionless { get; }
 
 		public bool Equals(AlgebraicFactor other)
 		{
-			if (Numerator.Count != other.Numerator.Count || Denominator.Count != other.Denominator.Count) return false;
+			if (this.Numerator.Count != other.Numerator.Count || this.Denominator.Count != other.Denominator.Count) return false;
 			var r = this.DictionaryEquals(this.Numerator, other.Numerator);
 			if (!r) return false;
 			r = this.DictionaryEquals(this.Denominator, other.Denominator);
@@ -80,14 +70,14 @@ namespace DXAppProto2
 
 		public static AlgebraicFactor FromSymbol(string symbol, int power = 1)
 		{
-			var num = new ListDictionary {{symbol, power}};
+			var num = new ListDictionary { { symbol, power } };
 			var den = new ListDictionary(0);
 			return new AlgebraicFactor(num, den);
 		}
 
 		public AlgebraicFactor Multiply(AlgebraicFactor other)
 		{
-			var nn = CreateDictionary(Numerator);
+			var nn = this.CreateDictionary(this.Numerator);
 			foreach (var nni in other.Numerator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -100,7 +90,7 @@ namespace DXAppProto2
 				}
 			}
 
-			var nd = CreateDictionary(Denominator);
+			var nd = this.CreateDictionary(this.Denominator);
 			foreach (var ndi in other.Denominator)
 			{
 				if (nd.ContainsKey(ndi.Key))
@@ -120,7 +110,7 @@ namespace DXAppProto2
 
 		public AlgebraicFactor Divide(AlgebraicFactor other)
 		{
-			var nn = CreateDictionary(Numerator);
+			var nn = this.CreateDictionary(this.Numerator);
 			foreach (var nni in other.Denominator)
 			{
 				if (nn.ContainsKey(nni.Key))
@@ -133,7 +123,7 @@ namespace DXAppProto2
 				}
 			}
 
-			var nd = CreateDictionary(Denominator);
+			var nd = this.CreateDictionary(this.Denominator);
 			foreach (var ndi in other.Numerator)
 			{
 				if (nd.ContainsKey(ndi.Key))
@@ -158,12 +148,12 @@ namespace DXAppProto2
 		public override bool Equals(object obj)
 		{
 			var obj2 = obj as AlgebraicFactor;
-			return obj2 != null && Equals(obj2);
+			return obj2 != null && this.Equals(obj2);
 		}
 
 		public override int GetHashCode()
 		{
-			return GetDictionaryHashCode(this.Numerator)*397 ^ GetDictionaryHashCode(this.Denominator);
+			return this.GetDictionaryHashCode(this.Numerator)*397 ^ this.GetDictionaryHashCode(this.Denominator);
 		}
 	}
 }

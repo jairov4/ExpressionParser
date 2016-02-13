@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using DXAppProto2.FilterExpressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace ExpressionParser.Test
+﻿namespace ExpressionParser.Test
 {
+	using System.IO;
+	using System.Text;
+	using DXAppProto2.FilterExpressions;
+	using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 	[TestClass]
 	public class ParserSimpleTests
 	{
@@ -61,7 +60,7 @@ namespace ExpressionParser.Test
 
 			Assert.IsNotNull(parser.Root);
 			Assert.IsTrue(parser.Root is FilterExpressionCastNode);
-			Assert.AreEqual(typeof(double), ((FilterExpressionCastNode)parser.Root).TargetType);
+			Assert.AreEqual(typeof (double), ((FilterExpressionCastNode)parser.Root).TargetType);
 		}
 
 		[TestMethod]
