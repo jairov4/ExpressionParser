@@ -4,18 +4,6 @@
 	using System.Collections.Generic;
 	using System.Linq;
 
-	/// <summary>
-	/// Allows to analyze multiple expressions with measurement unit and physical dimension awareness.
-	/// 
-	/// This class differences two types of information contained in <see cref="AlgebraicFactor" />, sometimes
-	/// an algebraic factor is an expression containing measurement units pe. kg*m/s^2. But, sometimes it
-	/// is an expression of physical dimensions pe. mass*distance/time^2. They are called Units Factors and
-	/// Dimensional Factors respectively.
-	/// 
-	/// This analyzer models two kinds of physical dimensions. <see cref="IFundamentalPhysicalDimension" /> are physical dimensions
-	/// that you assume measure a very basic concept in nature. <see cref="IComposedPhysicalDimension" /> are physical dimensions
-	/// that you can express in terms of other physical dimensions.
-	/// </summary>
 	public class DimensionalAnalyzer : IDimensionalAnalyzer
 	{
 		private readonly Dictionary<string, ComposedPhysicalDimension> composedPhysicalDimensions;
@@ -33,7 +21,7 @@
 			this.dimensionByUnit = new Dictionary<string, IPhysicalDimension>();
 			this.fundamentalMeasurementUnits = new HashSet<string>();
 		}
-
+		
 		public IReadOnlyCollection<string> ComposedPhysicalDimensions => this.composedPhysicalDimensions.Keys;
 
 		public IReadOnlyCollection<string> FundamentalPhysicalDimensions => this.fundamentalPhysicalDimensions.Keys;

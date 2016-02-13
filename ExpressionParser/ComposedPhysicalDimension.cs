@@ -8,8 +8,6 @@ namespace DXAppProto2
 
 		public AlgebraicFactor DimensionalDefinition { get; }
 
-		/// <summary>Gets the reference factor in fundamental measurement units.</summary>
-		/// <value>The reference factor </value>
 		public AlgebraicFactor ReferenceFactor { get; }
 
 		public ConversionParameters ConversionParameters { get; }
