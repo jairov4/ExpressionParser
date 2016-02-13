@@ -55,6 +55,7 @@
     <Compile Include="ParserSimpleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DimensionalAnalyzerTests.cs" />
+    <Compile Include="AlgebraicFactorTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ExpressionParser\ExpressionParser.csproj">

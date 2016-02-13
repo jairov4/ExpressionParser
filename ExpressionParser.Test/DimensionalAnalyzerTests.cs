@@ -50,6 +50,7 @@
 			var psi = AlgebraicFactor.FromSymbol("N").Divide(AlgebraicFactor.FromSymbol("m2"));
 			dim.AddComposedDimension("pressure", "psi", psi, new ConversionParameters(6894.76, 0));
 
+			Assert.AreEqual("psi", dim.GetComposedPhysicalDimension("pressure").DefaultMeasurementUnit);
 			Assert.AreEqual(2, dim.FundamentalPhysicalDimensions.Count);
 			Assert.AreEqual(1, dim.ComposedPhysicalDimensions.Count);
 			Assert.AreEqual(6894.76, dim.GetComposedPhysicalDimension("pressure").ConversionParameters.Factor);
